@@ -10,15 +10,15 @@ OBJECT XMLport 50053 Export Rapport Activite
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{EC730841-3827-4EC0-83B1-8CC32E5F313C}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{EC730841-3827-4EC0-83B1-8CC32E5F313C}];  ;Root                ;Element ;Text     }
+
     { [{854A93AD-A8A3-4009-93C7-92E168C50699}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -27,15 +27,19 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                            ERROR('Renseignez la date de debut et la date de fin.');
                                                                        END;
                                                                         }
+
     { [{95CD22A1-3540-4500-AAC1-D960EB27FC85}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
                                                                                  // MAJ 22/10/26 : 4 colonnes ajoutees EN FIN de ligne (compatibilite prototype)
                                                                                  LigneEntete :=
-                                                                                 'Source;Date;Document;Client;Local;Charge;GrandeFamille;Famille;SousFamille;TypeFacture;MontantHT;Fodec;Article;Quantite;Description;DernierMouvement;PrixRevient;NomClient;CreePar;GroupeClient;TypeLigne;ChargeFin;AgenceFin;CoutLigne;' +
-                                                                                 'LibGrandeFamille;LibFamille;LibSousFamille;CoutDoc;SourceCout;QteFacturee;DerniereVente;ValeurComptable';
+                                                                                   'Source;Date;Document;Client;Local;Charge;GrandeFamille;Famille;SousFamille;TypeFacture;MontantHT;' +
+                                                                                   'Fodec;Article;Quantite;Description;DernierMouvement;PrixRevient;NomClient;CreePar;GroupeClient;' +
+                                                                                   'TypeLigne;ChargeFin;AgenceFin;CoutLigne;LibGrandeFamille;LibFamille;LibSousFamille;CoutDoc;' +
+                                                                                   'SourceCout;QteFacturee;DerniereVente;ValeurComptable';
                                                                                END;
                                                                                 }
+
     { [{ECB16BBF-C24F-4FDE-8778-D5EB4C732F83}];1 ;VENTES              ;Element ;Table   ;
                                                   SourceTable=Table111;
                                                   Export::OnPreXMLItem=BEGIN
@@ -44,6 +48,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                          "Sales Shipment Line".SETFILTER("No.",'<>%1','');
                                                                        END;
                                                                         }
+
     { [{CD9431A5-7A9B-4581-AAA4-0BD3BC5ACBAC}];2 ;LigneVente          ;Element ;Text    ;
                                                   VariableName=LigneVente;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -103,11 +108,13 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    T("Sales Shipment Line"."No.") + ';' +
                                                                                    N("Sales Shipment Line".Quantity) + ';;;;' +
                                                                                    T(NomClient) + ';' + T(CreePar) + ';' + T(GroupeClient) + ';' +
-                                                                                   FORMAT("Sales Shipment Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' + T(GFL) + ';' + T(FBL) + ';' + T(SFBL) +
+                                                                                   FORMAT("Sales Shipment Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' +
+                                                                                   T(GFL) + ';' + T(FBL) + ';' + T(SFBL) +
                                                                                    ';' + N("Sales Shipment Line".Quantity * "Sales Shipment Line"."Unit Cost (LCY)") +
                                                                                    ';' + SrcCout + ';' + N("Sales Shipment Line"."Quantity Invoiced") + ';;';
                                                                                END;
                                                                                 }
+
     { [{18745E69-0786-4779-B51A-4CB874B870E3}];1 ;AVOIRS              ;Element ;Table   ;
                                                   SourceTable=Table115;
                                                   Export::OnPreXMLItem=BEGIN
@@ -116,6 +123,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                          "Sales Cr.Memo Line".SETFILTER("No.",'<>%1','');
                                                                        END;
                                                                         }
+
     { [{D3F051D3-96C3-42AC-985D-A79E49E6AF9D}];2 ;LigneAvoir          ;Element ;Text    ;
                                                   VariableName=LigneAvoir;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -160,16 +168,19 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    T("Sales Cr.Memo Line"."No.") + ';' +
                                                                                    N(-"Sales Cr.Memo Line".Quantity) + ';;;;' +
                                                                                    T(NomClient) + ';;' + T(GroupeClient) + ';' +
-                                                                                   FORMAT("Sales Cr.Memo Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' + T(GFL) + ';' + T(FBL) + ';' + T(SFBL) + ';'
-                                                                                   + N(-"Sales Cr.Memo Line".Quantity * "Sales Cr.Memo Line"."Unit Cost (LCY)") +
+                                                                                   FORMAT("Sales Cr.Memo Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' +
+                                                                                   T(GFL) + ';' + T(FBL) + ';' + T(SFBL) + ';' +
+                                                                                   N(-"Sales Cr.Memo Line".Quantity * "Sales Cr.Memo Line"."Unit Cost (LCY)") +
                                                                                    ';' + SrcCout + ';' + N(-"Sales Cr.Memo Line".Quantity) + ';;';
                                                                                END;
                                                                                 }
+
     { [{4DB06196-629B-4C24-BF26-5798F3D1D4EE}];1 ;STOCK               ;Element ;Table   ;
                                                   SourceTable=Table27;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          Item.SETRANGE("Inventory Posting Group",'MSE');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF NOT AvecStock THEN
                                                                                currXMLport.SKIP;
@@ -231,6 +242,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                              ValCompta := VE."Cost Amount (Actual)" + VE."Cost Amount (Expected)";
                                                                            END;
                                                                             }
+
     { [{6DE971EA-21EA-43F0-ABCF-CFD7FB930508}];2 ;LigneStock          ;Element ;Text    ;
                                                   VariableName=LigneStock;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -249,6 +261,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    SrcCout + ';;' + FDate(DVente) + ';' + N(ValCompta);
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -263,22 +276,27 @@ OBJECT XMLport 50053 Export Rapport Activite
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Date debut;
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date fin;
                   SourceExpr=DateFin }
+
       { 1000000003;1;Field  ;
                   Name=AvecStock;
                   CaptionML=FRA=Inclure le stock a la date de fin;
                   SourceExpr=AvecStock }
+
       { 1000000004;1;Field  ;
                   Name=CoutSecours;
                   CaptionML=FRA=Cout fiche article si absent de la table 50007;
                   SourceExpr=CoutSecours }
+
     }
   }
   CODE
@@ -449,3 +467,4 @@ OBJECT XMLport 50053 Export Rapport Activite
     END.
   }
 }
+
