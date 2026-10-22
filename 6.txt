@@ -17,15 +17,16 @@ OBJECT XMLport 50063 Export Carnet Commandes
   }
   ELEMENTS
   {
-    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text    ;
+    { [{6B0083E1-A8E0-4592-930E-80CD94D72A91}];  ;Root                ;Element ;Text    ;
                                                   MaxOccurs=Unbounded }
     { [{5CDEDA8B-4221-4A55-8016-D2AB3D51FE59}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
                                                   Export::OnPreXMLItem=BEGIN
-                                                                         DateRef := WORKDATE;
+                                                                         IF DateRef = 0D THEN
+                                                                           DateRef := WORKDATE;
                                                                        END;
-                                                   }
+                                                                        }
     { [{36B948D7-357A-4442-9EBB-6D80EBB1E17B}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -33,7 +34,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                    'Source;DateCommande;DatePrevue;Commande;Tiers;NomTiers;Charge;Agence;Article;GrandeFamille;Famille;SousFamille;' +
                                                                                    'Description;QteRestante;MontantRestantHT;QteLivreeNonFacturee;JoursRetard;Magasin;CreePar';
                                                                                END;
-                                                   }
+                                                                                }
     { [{342DAF89-F94A-4E4E-9E51-50D4FCEC1B0F}];1 ;CDE_VENTE           ;Element ;Table   ;
                                                   SourceTable=Table37;
                                                   Export::OnPreXMLItem=BEGIN
@@ -54,20 +55,21 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                HT := ROUND("Sales Line"."Outstanding Amount (LCY)" * "Sales Line".Amount / "Sales Line"."Amount Including VAT",0.001);
                                                                              Jours := Retard("Sales Line"."Shipment Date",DateRef);
                                                                            END;
-                                                   }
+                                                                            }
     { [{99923FD9-F862-4186-84C9-F9247C8E6392}];2 ;LigneCdeVente       ;Element ;Text    ;
                                                   VariableName=LigneCdeVente;
                                                   Export::OnBeforePassVariable=BEGIN
                                                                                  // Charge = vendeur de l en-tete ; remplacer par "Charg‚ ClientŠle" si ce champ existe sur la table 37
                                                                                  LigneCdeVente :=
                                                                                    'CV;' + FDate(SalesHdr."Order Date") + ';' + FDate("Sales Line"."Shipment Date") + ';' +
-                                                                                   T("Sales Line"."Document No.") + ';' + T("Sales Line"."Sell-to Customer No.") + ';' + T(SalesHdr."Sell-to Customer Name") + ';' +
+                                                                                   T("Sales Line"."Document No.") + ';' + T("Sales Line"."Sell-to Customer No.") + ';' +
+                                                                                   T(SalesHdr."Sell-to Customer Name") + ';' +
                                                                                    T(SalesHdr."Salesperson Code") + ';' + T(AgenceDe(SalesHdr."Salesperson Code")) + ';' +
                                                                                    T("Sales Line"."No.") + ';' + T(GF) + ';' + T(FB) + ';' + T(SFB) + ';' + T("Sales Line".Description) + ';' +
                                                                                    N("Sales Line"."Outstanding Quantity") + ';' + N(HT) + ';' + N("Sales Line"."Qty. Shipped Not Invoiced") + ';' +
                                                                                    I(Jours) + ';' + T("Sales Line"."Location Code") + ';' + T(SalesHdr."Created By");
                                                                                END;
-                                                   }
+                                                                                }
     { [{E61C109D-B347-4421-84C1-28C8AFC33840}];1 ;CDE_ACHAT           ;Element ;Table   ;
                                                   SourceTable=Table39;
                                                   Export::OnPreXMLItem=BEGIN
@@ -87,19 +89,20 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                HT := ROUND("Purchase Line"."Outstanding Amount (LCY)" * "Purchase Line".Amount / "Purchase Line"."Amount Including VAT",0.001);
                                                                              Jours := Retard("Purchase Line"."Expected Receipt Date",DateRef);
                                                                            END;
-                                                   }
+                                                                            }
     { [{E5DEA5B9-4313-412F-B729-068EF4646684}];2 ;LigneCdeAchat       ;Element ;Text    ;
                                                   VariableName=LigneCdeAchat;
                                                   Export::OnBeforePassVariable=BEGIN
                                                                                  LigneCdeAchat :=
                                                                                    'CA;' + FDate(PurchHdr."Order Date") + ';' + FDate("Purchase Line"."Expected Receipt Date") + ';' +
-                                                                                   T("Purchase Line"."Document No.") + ';' + T("Purchase Line"."Buy-from Vendor No.") + ';' + T(PurchHdr."Buy-from Vendor Name") + ';' +
+                                                                                   T("Purchase Line"."Document No.") + ';' + T("Purchase Line"."Buy-from Vendor No.") + ';' +
+                                                                                   T(PurchHdr."Buy-from Vendor Name") + ';' +
                                                                                    T(PurchHdr."Purchaser Code") + ';;' +
                                                                                    T("Purchase Line"."No.") + ';' + T(GF) + ';' + T(FB) + ';' + T(SFB) + ';' + T("Purchase Line".Description) + ';' +
                                                                                    N("Purchase Line"."Outstanding Quantity") + ';' + N(HT) + ';' + N("Purchase Line"."Qty. Rcd. Not Invoiced") + ';' +
                                                                                    I(Jours) + ';' + T("Purchase Line"."Location Code") + ';';
                                                                                END;
-                                                   }
+                                                                                }
   }
   EVENTS
   {
@@ -114,6 +117,10 @@ OBJECT XMLport 50063 Export Carnet Commandes
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+      { 1000000001;1;Field  ;
+                  Name=DateRef;
+                  CaptionML=FRA=Date de reference (vide = date de travail);
+                  SourceExpr=DateRef }
     }
   }
   CODE
@@ -131,6 +138,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
       SFB@1000000109 : Code[20];
       CacheDoc@1000000110 : Code[20];
       CacheDocA@1000000111 : Code[20];
+
     PROCEDURE FDate@1000000010(D@1000000000 : Date) : Text[10];
     BEGIN
       IF D = 0D THEN
@@ -155,12 +163,18 @@ OBJECT XMLport 50063 Export Carnet Commandes
 
     PROCEDURE Tranche@1000000014(J@1000000000 : Integer) : Text[10];
     BEGIN
-      IF J <= 0 THEN EXIT('NON ECHU');
-      IF J <= 30 THEN EXIT('1-30');
-      IF J <= 60 THEN EXIT('31-60');
-      IF J <= 90 THEN EXIT('61-90');
-      IF J <= 180 THEN EXIT('91-180');
-      IF J <= 365 THEN EXIT('181-365');
+      IF J <= 0 THEN
+        EXIT('NON ECHU');
+      IF J <= 30 THEN
+        EXIT('1-30');
+      IF J <= 60 THEN
+        EXIT('31-60');
+      IF J <= 90 THEN
+        EXIT('61-90');
+      IF J <= 180 THEN
+        EXIT('91-180');
+      IF J <= 365 THEN
+        EXIT('181-365');
       EXIT('+365');
     END;
 

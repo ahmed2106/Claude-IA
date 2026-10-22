@@ -26,7 +26,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                          IF DateFin = 0D THEN
                                                                            ERROR('Renseignez la date d arrete.');
                                                                        END;
-                                                   }
+                                                                        }
     { [{E9EF8356-EA6C-4842-8402-DAD529495445}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -34,7 +34,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    'Source;DateArrete;Client;NomClient;Charge;Agence;GroupeClient;Document;TypeDoc;DateComptable;DateEcheance;' +
                                                                                    'MontantInitial;ResteDu;JoursRetard;Tranche;LimiteCredit;ConditionPaiement;Bloque;ModeReglement;Solde';
                                                                                END;
-                                                   }
+                                                                                }
     { [{9C6B8E19-ADE1-4034-ADFC-BC7E2FC89999}];1 ;CLIENTS             ;Element ;Table   ;
                                                   SourceTable=Table18;
                                                   Export::OnPreXMLItem=BEGIN
@@ -45,7 +45,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                              IF (Customer."Net Change (LCY)" = 0) AND (Customer."Credit Limit (LCY)" = 0) THEN
                                                                                currXMLport.SKIP;
                                                                            END;
-                                                   }
+                                                                            }
     { [{ADBFC5C9-4630-4AE1-B76C-6B41C06580DF}];2 ;LigneClient         ;Element ;Text    ;
                                                   VariableName=LigneClient;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -56,7 +56,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    N(Customer."Credit Limit (LCY)") + ';' + T(Customer."Payment Terms Code") + ';' +
                                                                                    FORMAT(Customer.Blocked,0,2) + ';' + T(Customer."Payment Method Code") + ';' + N(Customer."Net Change (LCY)");
                                                                                END;
-                                                   }
+                                                                                }
     { [{6C9A53B4-B818-4898-8485-D3AAE1E8C765}];1 ;ECRITURES           ;Element ;Table   ;
                                                   SourceTable=Table21;
                                                   Export::OnPreXMLItem=BEGIN
@@ -77,7 +77,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                              Jours := Retard(Ech,DateFin);
                                                                              NomCli("Cust. Ledger Entry"."Customer No.");
                                                                            END;
-                                                   }
+                                                                            }
     { [{91555D03-1391-432F-ADBF-EB480530EE9F}];2 ;LigneEcriture       ;Element ;Text    ;
                                                   VariableName=LigneEcriture;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -89,10 +89,10 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    FDate(Ech) + ';' + N("Cust. Ledger Entry"."Amount (LCY)") + ';' + N("Cust. Ledger Entry"."Remaining Amt. (LCY)") + ';' +
                                                                                    I(Jours) + ';' + Tranche(Jours) + ';;;;' + T("Cust. Ledger Entry"."Payment Method Code") + ';';
                                                                                END;
-                                                   }
+                                                                                }
     { [{676827DA-48AE-40BE-9836-FA1F5EB15A20}];1 ;ENCAISSEMENTS       ;Element ;Table   ;
-                                                  SourceTable=Table21;
                                                   VariableName=Paiement;
+                                                  SourceTable=Table21;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          // encaissements de la periode (taux de recouvrement, flux) ; vide si date debut non renseignee
                                                                          Paiement.SETRANGE("Document Type",Paiement."Document Type"::Payment);
@@ -105,7 +105,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                              Paiement.CALCFIELDS("Amount (LCY)");
                                                                              NomCli(Paiement."Customer No.");
                                                                            END;
-                                                   }
+                                                                            }
     { [{1E1A3AFD-DE6A-4DD1-978C-B1E5A40A98C3}];2 ;LignePaiement       ;Element ;Text    ;
                                                   VariableName=LignePaiement;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -116,7 +116,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    FORMAT(Paiement."Document Type",0,2) + ';' + FDate(Paiement."Posting Date") + ';;' +
                                                                                    N(-Paiement."Amount (LCY)") + ';;;;;;;' + T(Paiement."Payment Method Code") + ';';
                                                                                END;
-                                                   }
+                                                                                }
   }
   EVENTS
   {
@@ -152,6 +152,7 @@ OBJECT XMLport 50060 Export Creances Clients
       SP@1000000105 : Record 13;
       NomClient@1000000106 : Text[100];
       CacheCli@1000000107 : Code[20];
+
     PROCEDURE FDate@1000000010(D@1000000000 : Date) : Text[10];
     BEGIN
       IF D = 0D THEN
@@ -176,12 +177,18 @@ OBJECT XMLport 50060 Export Creances Clients
 
     PROCEDURE Tranche@1000000014(J@1000000000 : Integer) : Text[10];
     BEGIN
-      IF J <= 0 THEN EXIT('NON ECHU');
-      IF J <= 30 THEN EXIT('1-30');
-      IF J <= 60 THEN EXIT('31-60');
-      IF J <= 90 THEN EXIT('61-90');
-      IF J <= 180 THEN EXIT('91-180');
-      IF J <= 365 THEN EXIT('181-365');
+      IF J <= 0 THEN
+        EXIT('NON ECHU');
+      IF J <= 30 THEN
+        EXIT('1-30');
+      IF J <= 60 THEN
+        EXIT('31-60');
+      IF J <= 90 THEN
+        EXIT('61-90');
+      IF J <= 180 THEN
+        EXIT('91-180');
+      IF J <= 365 THEN
+        EXIT('181-365');
       EXIT('+365');
     END;
 

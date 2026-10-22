@@ -17,7 +17,7 @@ OBJECT XMLport 50064 Export Achats
   }
   ELEMENTS
   {
-    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text    ;
+    { [{7B0083E1-A8E0-4592-930E-80CD94D72A92}];  ;Root                ;Element ;Text    ;
                                                   MaxOccurs=Unbounded }
     { [{7E024E2A-B455-4E7D-88C2-C47A64EEA0A8}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
@@ -26,7 +26,7 @@ OBJECT XMLport 50064 Export Achats
                                                                          IF (DateDebut = 0D) OR (DateFin = 0D) THEN
                                                                            ERROR('Renseignez la date de debut et la date de fin.');
                                                                        END;
-                                                   }
+                                                                        }
     { [{73ECFA64-2431-4A74-BA21-1C7F7D7AA82E}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -34,7 +34,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    'Source;Date;Document;Fournisseur;NomFournisseur;Article;GrandeFamille;Famille;SousFamille;Description;' +
                                                                                    'Quantite;MontantHT_LCY;Devise;MontantHT_Devise;Magasin;TypeLigne';
                                                                                END;
-                                                   }
+                                                                                }
     { [{5DAE695F-1B3A-489F-80BB-5D756015C08C}];1 ;FACTURES            ;Element ;Table   ;
                                                   SourceTable=Table123;
                                                   Export::OnPreXMLItem=BEGIN
@@ -54,7 +54,7 @@ OBJECT XMLport 50064 Export Achats
                                                                              IF PIH."Currency Factor" <> 0 THEN
                                                                                MtLCY := ROUND("Purch. Inv. Line".Amount / PIH."Currency Factor",0.001);
                                                                            END;
-                                                   }
+                                                                            }
     { [{789EA994-C6AC-496E-9E60-329D034C2E95}];2 ;LigneFacture        ;Element ;Text    ;
                                                   VariableName=LigneFacture;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -65,7 +65,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    N("Purch. Inv. Line".Quantity) + ';' + N(MtLCY) + ';' + T(PIH."Currency Code") + ';' + N("Purch. Inv. Line".Amount) + ';' +
                                                                                    T("Purch. Inv. Line"."Location Code") + ';' + FORMAT("Purch. Inv. Line".Type,0,2);
                                                                                END;
-                                                   }
+                                                                                }
     { [{D26B74D8-3551-4BE0-AA91-9A3C948EC167}];1 ;AVOIRS              ;Element ;Table   ;
                                                   SourceTable=Table125;
                                                   Export::OnPreXMLItem=BEGIN
@@ -84,18 +84,19 @@ OBJECT XMLport 50064 Export Achats
                                                                              IF PCH."Currency Factor" <> 0 THEN
                                                                                MtLCY := ROUND("Purch. Cr. Memo Line".Amount / PCH."Currency Factor",0.001);
                                                                            END;
-                                                   }
+                                                                            }
     { [{7B50A98B-E8E1-4789-BB32-64DF8468800D}];2 ;LigneAvoir          ;Element ;Text    ;
                                                   VariableName=LigneAvoir;
                                                   Export::OnBeforePassVariable=BEGIN
                                                                                  LigneAvoir :=
                                                                                    'AA;' + FDate("Purch. Cr. Memo Line"."Posting Date") + ';' + T("Purch. Cr. Memo Line"."Document No.") + ';' +
                                                                                    T("Purch. Cr. Memo Line"."Buy-from Vendor No.") + ';' + T(PCH."Buy-from Vendor Name") + ';' +
-                                                                                   T("Purch. Cr. Memo Line"."No.") + ';' + T(GF) + ';' + T(FB) + ';' + T(SFB) + ';' + T("Purch. Cr. Memo Line".Description) + ';' +
-                                                                                   N(-"Purch. Cr. Memo Line".Quantity) + ';' + N(-MtLCY) + ';' + T(PCH."Currency Code") + ';' + N(-"Purch. Cr. Memo Line".Amount) + ';' +
+                                                                                   T("Purch. Cr. Memo Line"."No.") + ';' + T(GF) + ';' + T(FB) + ';' + T(SFB) + ';' +
+                                                                                   T("Purch. Cr. Memo Line".Description) + ';' + N(-"Purch. Cr. Memo Line".Quantity) + ';' +
+                                                                                   N(-MtLCY) + ';' + T(PCH."Currency Code") + ';' + N(-"Purch. Cr. Memo Line".Amount) + ';' +
                                                                                    T("Purch. Cr. Memo Line"."Location Code") + ';' + FORMAT("Purch. Cr. Memo Line".Type,0,2);
                                                                                END;
-                                                   }
+                                                                                }
   }
   EVENTS
   {
@@ -134,6 +135,7 @@ OBJECT XMLport 50064 Export Achats
       SFB@1000000108 : Code[20];
       CacheDoc@1000000109 : Code[20];
       CacheDocA@1000000110 : Code[20];
+
     PROCEDURE FDate@1000000010(D@1000000000 : Date) : Text[10];
     BEGIN
       IF D = 0D THEN
@@ -158,12 +160,18 @@ OBJECT XMLport 50064 Export Achats
 
     PROCEDURE Tranche@1000000014(J@1000000000 : Integer) : Text[10];
     BEGIN
-      IF J <= 0 THEN EXIT('NON ECHU');
-      IF J <= 30 THEN EXIT('1-30');
-      IF J <= 60 THEN EXIT('31-60');
-      IF J <= 90 THEN EXIT('61-90');
-      IF J <= 180 THEN EXIT('91-180');
-      IF J <= 365 THEN EXIT('181-365');
+      IF J <= 0 THEN
+        EXIT('NON ECHU');
+      IF J <= 30 THEN
+        EXIT('1-30');
+      IF J <= 60 THEN
+        EXIT('31-60');
+      IF J <= 90 THEN
+        EXIT('61-90');
+      IF J <= 180 THEN
+        EXIT('91-180');
+      IF J <= 365 THEN
+        EXIT('181-365');
       EXIT('+365');
     END;
 

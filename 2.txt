@@ -32,8 +32,10 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                   Export::OnBeforePassVariable=BEGIN
                                                                                  // MAJ 22/10/26 : 4 colonnes ajoutees EN FIN de ligne (compatibilite prototype)
                                                                                  LigneEntete :=
-                                                                                 'Source;Date;Document;Client;Local;Charge;GrandeFamille;Famille;SousFamille;TypeFacture;MontantHT;Fodec;Article;Quantite;Description;DernierMouvement;PrixRevient;NomClient;CreePar;GroupeClient;TypeLigne;ChargeFin;AgenceFin;CoutLigne;' +
-                                                                                 'LibGrandeFamille;LibFamille;LibSousFamille;CoutDoc;SourceCout;QteFacturee;DerniereVente;ValeurComptable';
+                                                                                   'Source;Date;Document;Client;Local;Charge;GrandeFamille;Famille;SousFamille;TypeFacture;MontantHT;' +
+                                                                                   'Fodec;Article;Quantite;Description;DernierMouvement;PrixRevient;NomClient;CreePar;GroupeClient;' +
+                                                                                   'TypeLigne;ChargeFin;AgenceFin;CoutLigne;LibGrandeFamille;LibFamille;LibSousFamille;CoutDoc;' +
+                                                                                   'SourceCout;QteFacturee;DerniereVente;ValeurComptable';
                                                                                END;
                                                                                 }
     { [{ECB16BBF-C24F-4FDE-8778-D5EB4C732F83}];1 ;VENTES              ;Element ;Table   ;
@@ -103,7 +105,8 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    T("Sales Shipment Line"."No.") + ';' +
                                                                                    N("Sales Shipment Line".Quantity) + ';;;;' +
                                                                                    T(NomClient) + ';' + T(CreePar) + ';' + T(GroupeClient) + ';' +
-                                                                                   FORMAT("Sales Shipment Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' + T(GFL) + ';' + T(FBL) + ';' + T(SFBL) +
+                                                                                   FORMAT("Sales Shipment Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' +
+                                                                                   T(GFL) + ';' + T(FBL) + ';' + T(SFBL) +
                                                                                    ';' + N("Sales Shipment Line".Quantity * "Sales Shipment Line"."Unit Cost (LCY)") +
                                                                                    ';' + SrcCout + ';' + N("Sales Shipment Line"."Quantity Invoiced") + ';;';
                                                                                END;
@@ -160,8 +163,9 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    T("Sales Cr.Memo Line"."No.") + ';' +
                                                                                    N(-"Sales Cr.Memo Line".Quantity) + ';;;;' +
                                                                                    T(NomClient) + ';;' + T(GroupeClient) + ';' +
-                                                                                   FORMAT("Sales Cr.Memo Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' + T(GFL) + ';' + T(FBL) + ';' + T(SFBL) + ';'
-                                                                                   + N(-"Sales Cr.Memo Line".Quantity * "Sales Cr.Memo Line"."Unit Cost (LCY)") +
+                                                                                   FORMAT("Sales Cr.Memo Line".Type,0,2) + ';' + T(ChargeFin) + ';' + T(AgenceFin) + ';' + N(CoutL) + ';' +
+                                                                                   T(GFL) + ';' + T(FBL) + ';' + T(SFBL) + ';' +
+                                                                                   N(-"Sales Cr.Memo Line".Quantity * "Sales Cr.Memo Line"."Unit Cost (LCY)") +
                                                                                    ';' + SrcCout + ';' + N(-"Sales Cr.Memo Line".Quantity) + ';;';
                                                                                END;
                                                                                 }

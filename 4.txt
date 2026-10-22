@@ -17,7 +17,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
   }
   ELEMENTS
   {
-    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text    ;
+    { [{4B0083E1-A8E0-4592-930E-80CD94D72A8F}];  ;Root                ;Element ;Text    ;
                                                   MaxOccurs=Unbounded }
     { [{08F1C0A2-3D02-4985-82E8-F79C095E88E0}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
@@ -26,7 +26,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                          IF DateFin = 0D THEN
                                                                            ERROR('Renseignez la date d arrete.');
                                                                        END;
-                                                   }
+                                                                        }
     { [{8DDC4DA7-A4F8-45B2-A975-95760F95D8E5}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -34,7 +34,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    'Source;DateArrete;Fournisseur;NomFournisseur;Acheteur;GroupeFournisseur;Document;TypeDoc;DateComptable;DateEcheance;' +
                                                                                    'MontantInitial;ResteDu;JoursRetard;Tranche;ConditionPaiement;Bloque;ModeReglement;Solde;DocExterne';
                                                                                END;
-                                                   }
+                                                                                }
     { [{87072B4B-0FF9-4D0B-913C-A6E36A4FB661}];1 ;FOURNISSEURS        ;Element ;Table   ;
                                                   SourceTable=Table23;
                                                   Export::OnPreXMLItem=BEGIN
@@ -45,7 +45,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                              IF Vendor."Net Change (LCY)" = 0 THEN
                                                                                currXMLport.SKIP;
                                                                            END;
-                                                   }
+                                                                            }
     { [{30F28980-E692-410B-9CEA-6814DBAE07CB}];2 ;LigneFournisseur    ;Element ;Text    ;
                                                   VariableName=LigneFournisseur;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -56,7 +56,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    T(Vendor."Payment Terms Code") + ';' + FORMAT(Vendor.Blocked,0,2) + ';' +
                                                                                    T(Vendor."Payment Method Code") + ';' + N(-Vendor."Net Change (LCY)") + ';';
                                                                                END;
-                                                   }
+                                                                                }
     { [{1B851DAD-835F-47AD-8BA5-BB5CE010E7CB}];1 ;ECRITURES           ;Element ;Table   ;
                                                   SourceTable=Table25;
                                                   Export::OnPreXMLItem=BEGIN
@@ -75,7 +75,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                              Jours := Retard(Ech,DateFin);
                                                                              NomFrs("Vendor Ledger Entry"."Vendor No.");
                                                                            END;
-                                                   }
+                                                                            }
     { [{064D0056-E532-4341-8D54-7DF1290F3BCF}];2 ;LigneEcriture       ;Element ;Text    ;
                                                   VariableName=LigneEcriture;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -88,10 +88,10 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    I(Jours) + ';' + Tranche(Jours) + ';;;' + T("Vendor Ledger Entry"."Payment Method Code") + ';;' +
                                                                                    T("Vendor Ledger Entry"."External Document No.");
                                                                                END;
-                                                   }
+                                                                                }
     { [{A939972C-68A5-4324-9D6F-3C093EB3A84E}];1 ;DECAISSEMENTS       ;Element ;Table   ;
-                                                  SourceTable=Table25;
                                                   VariableName=Paiement;
+                                                  SourceTable=Table25;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          Paiement.SETRANGE("Document Type",Paiement."Document Type"::Payment);
                                                                          IF DateDebut = 0D THEN
@@ -103,7 +103,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                              Paiement.CALCFIELDS("Amount (LCY)");
                                                                              NomFrs(Paiement."Vendor No.");
                                                                            END;
-                                                   }
+                                                                            }
     { [{BC9F2C73-DC6C-4700-9F4A-4B1544B3FD55}];2 ;LignePaiement       ;Element ;Text    ;
                                                   VariableName=LignePaiement;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -114,7 +114,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    FDate(Paiement."Posting Date") + ';;' + N(Paiement."Amount (LCY)") + ';;;;;;' +
                                                                                    T(Paiement."Payment Method Code") + ';;' + T(Paiement."External Document No.");
                                                                                END;
-                                                   }
+                                                                                }
   }
   EVENTS
   {
@@ -149,6 +149,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
       Vend@1000000104 : Record 23;
       NomFournisseur@1000000105 : Text[100];
       CacheFrs@1000000106 : Code[20];
+
     PROCEDURE FDate@1000000010(D@1000000000 : Date) : Text[10];
     BEGIN
       IF D = 0D THEN
@@ -173,12 +174,18 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
 
     PROCEDURE Tranche@1000000014(J@1000000000 : Integer) : Text[10];
     BEGIN
-      IF J <= 0 THEN EXIT('NON ECHU');
-      IF J <= 30 THEN EXIT('1-30');
-      IF J <= 60 THEN EXIT('31-60');
-      IF J <= 90 THEN EXIT('61-90');
-      IF J <= 180 THEN EXIT('91-180');
-      IF J <= 365 THEN EXIT('181-365');
+      IF J <= 0 THEN
+        EXIT('NON ECHU');
+      IF J <= 30 THEN
+        EXIT('1-30');
+      IF J <= 60 THEN
+        EXIT('31-60');
+      IF J <= 90 THEN
+        EXIT('61-90');
+      IF J <= 180 THEN
+        EXIT('91-180');
+      IF J <= 365 THEN
+        EXIT('181-365');
       EXIT('+365');
     END;
 
