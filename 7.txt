@@ -10,15 +10,15 @@ OBJECT XMLport 50064 Export Achats
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{7B0083E1-A8E0-4592-930E-80CD94D72A92}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{7B0083E1-A8E0-4592-930E-80CD94D72A92}];  ;Root                ;Element ;Text     }
+
     { [{7E024E2A-B455-4E7D-88C2-C47A64EEA0A8}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -27,6 +27,7 @@ OBJECT XMLport 50064 Export Achats
                                                                            ERROR('Renseignez la date de debut et la date de fin.');
                                                                        END;
                                                                         }
+
     { [{73ECFA64-2431-4A74-BA21-1C7F7D7AA82E}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -35,6 +36,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    'Quantite;MontantHT_LCY;Devise;MontantHT_Devise;Magasin;TypeLigne';
                                                                                END;
                                                                                 }
+
     { [{5DAE695F-1B3A-489F-80BB-5D756015C08C}];1 ;FACTURES            ;Element ;Table   ;
                                                   SourceTable=Table123;
                                                   Export::OnPreXMLItem=BEGIN
@@ -42,6 +44,7 @@ OBJECT XMLport 50064 Export Achats
                                                                          "Purch. Inv. Line".SETFILTER(Type,'%1|%2',"Purch. Inv. Line".Type::Item,"Purch. Inv. Line".Type::"Charge (Item)");
                                                                          "Purch. Inv. Line".SETFILTER("No.",'<>%1','');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Purch. Inv. Line"."Document No." <> CacheDoc THEN BEGIN
                                                                                CacheDoc := "Purch. Inv. Line"."Document No.";
@@ -55,6 +58,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                MtLCY := ROUND("Purch. Inv. Line".Amount / PIH."Currency Factor",0.001);
                                                                            END;
                                                                             }
+
     { [{789EA994-C6AC-496E-9E60-329D034C2E95}];2 ;LigneFacture        ;Element ;Text    ;
                                                   VariableName=LigneFacture;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -66,6 +70,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    T("Purch. Inv. Line"."Location Code") + ';' + FORMAT("Purch. Inv. Line".Type,0,2);
                                                                                END;
                                                                                 }
+
     { [{D26B74D8-3551-4BE0-AA91-9A3C948EC167}];1 ;AVOIRS              ;Element ;Table   ;
                                                   SourceTable=Table125;
                                                   Export::OnPreXMLItem=BEGIN
@@ -73,6 +78,7 @@ OBJECT XMLport 50064 Export Achats
                                                                          "Purch. Cr. Memo Line".SETFILTER(Type,'%1|%2',"Purch. Cr. Memo Line".Type::Item,"Purch. Cr. Memo Line".Type::"Charge (Item)");
                                                                          "Purch. Cr. Memo Line".SETFILTER("No.",'<>%1','');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Purch. Cr. Memo Line"."Document No." <> CacheDocA THEN BEGIN
                                                                                CacheDocA := "Purch. Cr. Memo Line"."Document No.";
@@ -85,6 +91,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                MtLCY := ROUND("Purch. Cr. Memo Line".Amount / PCH."Currency Factor",0.001);
                                                                            END;
                                                                             }
+
     { [{7B50A98B-E8E1-4789-BB32-64DF8468800D}];2 ;LigneAvoir          ;Element ;Text    ;
                                                   VariableName=LigneAvoir;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -97,6 +104,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    T("Purch. Cr. Memo Line"."Location Code") + ';' + FORMAT("Purch. Cr. Memo Line".Type,0,2);
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -111,14 +119,17 @@ OBJECT XMLport 50064 Export Achats
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Date debut;
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date fin;
                   SourceExpr=DateFin }
+
     }
   }
   CODE
@@ -199,3 +210,4 @@ OBJECT XMLport 50064 Export Achats
     END.
   }
 }
+

@@ -10,15 +10,15 @@ OBJECT XMLport 50053 Export Rapport Activite
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{EC730841-3827-4EC0-83B1-8CC32E5F313C}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{EC730841-3827-4EC0-83B1-8CC32E5F313C}];  ;Root                ;Element ;Text     }
+
     { [{854A93AD-A8A3-4009-93C7-92E168C50699}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -27,6 +27,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                            ERROR('Renseignez la date de debut et la date de fin.');
                                                                        END;
                                                                         }
+
     { [{95CD22A1-3540-4500-AAC1-D960EB27FC85}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -38,6 +39,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    'SourceCout;QteFacturee;DerniereVente;ValeurComptable';
                                                                                END;
                                                                                 }
+
     { [{ECB16BBF-C24F-4FDE-8778-D5EB4C732F83}];1 ;VENTES              ;Element ;Table   ;
                                                   SourceTable=Table111;
                                                   Export::OnPreXMLItem=BEGIN
@@ -46,6 +48,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                          "Sales Shipment Line".SETFILTER("No.",'<>%1','');
                                                                        END;
                                                                         }
+
     { [{CD9431A5-7A9B-4581-AAA4-0BD3BC5ACBAC}];2 ;LigneVente          ;Element ;Text    ;
                                                   VariableName=LigneVente;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -111,6 +114,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    ';' + SrcCout + ';' + N("Sales Shipment Line"."Quantity Invoiced") + ';;';
                                                                                END;
                                                                                 }
+
     { [{18745E69-0786-4779-B51A-4CB874B870E3}];1 ;AVOIRS              ;Element ;Table   ;
                                                   SourceTable=Table115;
                                                   Export::OnPreXMLItem=BEGIN
@@ -119,6 +123,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                          "Sales Cr.Memo Line".SETFILTER("No.",'<>%1','');
                                                                        END;
                                                                         }
+
     { [{D3F051D3-96C3-42AC-985D-A79E49E6AF9D}];2 ;LigneAvoir          ;Element ;Text    ;
                                                   VariableName=LigneAvoir;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -169,11 +174,13 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    ';' + SrcCout + ';' + N(-"Sales Cr.Memo Line".Quantity) + ';;';
                                                                                END;
                                                                                 }
+
     { [{4DB06196-629B-4C24-BF26-5798F3D1D4EE}];1 ;STOCK               ;Element ;Table   ;
                                                   SourceTable=Table27;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          Item.SETRANGE("Inventory Posting Group",'MSE');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF NOT AvecStock THEN
                                                                                currXMLport.SKIP;
@@ -235,6 +242,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                              ValCompta := VE."Cost Amount (Actual)" + VE."Cost Amount (Expected)";
                                                                            END;
                                                                             }
+
     { [{6DE971EA-21EA-43F0-ABCF-CFD7FB930508}];2 ;LigneStock          ;Element ;Text    ;
                                                   VariableName=LigneStock;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -253,6 +261,7 @@ OBJECT XMLport 50053 Export Rapport Activite
                                                                                    SrcCout + ';;' + FDate(DVente) + ';' + N(ValCompta);
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -267,22 +276,27 @@ OBJECT XMLport 50053 Export Rapport Activite
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Date debut;
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date fin;
                   SourceExpr=DateFin }
+
       { 1000000003;1;Field  ;
                   Name=AvecStock;
                   CaptionML=FRA=Inclure le stock a la date de fin;
                   SourceExpr=AvecStock }
+
       { 1000000004;1;Field  ;
                   Name=CoutSecours;
                   CaptionML=FRA=Cout fiche article si absent de la table 50007;
                   SourceExpr=CoutSecours }
+
     }
   }
   CODE
@@ -453,6 +467,7 @@ OBJECT XMLport 50053 Export Rapport Activite
     END.
   }
 }
+
 OBJECT XMLport 50060 Export Creances Clients
 {
   OBJECT-PROPERTIES
@@ -465,15 +480,15 @@ OBJECT XMLport 50060 Export Creances Clients
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text     }
+
     { [{7A53A958-A71A-46F3-B323-7542CB2982FC}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -482,6 +497,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                            ERROR('Renseignez la date d arrete.');
                                                                        END;
                                                                         }
+
     { [{E9EF8356-EA6C-4842-8402-DAD529495445}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -490,17 +506,20 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    'MontantInitial;ResteDu;JoursRetard;Tranche;LimiteCredit;ConditionPaiement;Bloque;ModeReglement;Solde';
                                                                                END;
                                                                                 }
+
     { [{9C6B8E19-ADE1-4034-ADFC-BC7E2FC89999}];1 ;CLIENTS             ;Element ;Table   ;
                                                   SourceTable=Table18;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          Customer.SETRANGE("Date Filter",0D,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              Customer.CALCFIELDS("Net Change (LCY)");
                                                                              IF (Customer."Net Change (LCY)" = 0) AND (Customer."Credit Limit (LCY)" = 0) THEN
                                                                                currXMLport.SKIP;
                                                                            END;
                                                                             }
+
     { [{ADBFC5C9-4630-4AE1-B76C-6B41C06580DF}];2 ;LigneClient         ;Element ;Text    ;
                                                   VariableName=LigneClient;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -512,6 +531,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    FORMAT(Customer.Blocked,0,2) + ';' + T(Customer."Payment Method Code") + ';' + N(Customer."Net Change (LCY)");
                                                                                END;
                                                                                 }
+
     { [{6C9A53B4-B818-4898-8485-D3AAE1E8C765}];1 ;ECRITURES           ;Element ;Table   ;
                                                   SourceTable=Table21;
                                                   Export::OnPreXMLItem=BEGIN
@@ -521,6 +541,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                            "Cust. Ledger Entry".SETRANGE(Open,TRUE);
                                                                          "Cust. Ledger Entry".SETRANGE("Date Filter",0D,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              // reste du a la date d arrete (FlowField filtre par Date Filter)
                                                                              "Cust. Ledger Entry".CALCFIELDS("Amount (LCY)","Remaining Amt. (LCY)");
@@ -533,6 +554,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                              NomCli("Cust. Ledger Entry"."Customer No.");
                                                                            END;
                                                                             }
+
     { [{91555D03-1391-432F-ADBF-EB480530EE9F}];2 ;LigneEcriture       ;Element ;Text    ;
                                                   VariableName=LigneEcriture;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -545,6 +567,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    I(Jours) + ';' + Tranche(Jours) + ';;;;' + T("Cust. Ledger Entry"."Payment Method Code") + ';';
                                                                                END;
                                                                                 }
+
     { [{676827DA-48AE-40BE-9836-FA1F5EB15A20}];1 ;ENCAISSEMENTS       ;Element ;Table   ;
                                                   VariableName=Paiement;
                                                   SourceTable=Table21;
@@ -556,11 +579,13 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                          ELSE
                                                                            Paiement.SETRANGE("Posting Date",DateDebut,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              Paiement.CALCFIELDS("Amount (LCY)");
                                                                              NomCli(Paiement."Customer No.");
                                                                            END;
                                                                             }
+
     { [{1E1A3AFD-DE6A-4DD1-978C-B1E5A40A98C3}];2 ;LignePaiement       ;Element ;Text    ;
                                                   VariableName=LignePaiement;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -572,6 +597,7 @@ OBJECT XMLport 50060 Export Creances Clients
                                                                                    N(-Paiement."Amount (LCY)") + ';;;;;;;' + T(Paiement."Payment Method Code") + ';';
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -586,14 +612,17 @@ OBJECT XMLport 50060 Export Creances Clients
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Debut periode encaissements (facultatif);
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date d arrete;
                   SourceExpr=DateFin }
+
     }
   }
   CODE
@@ -677,6 +706,7 @@ OBJECT XMLport 50060 Export Creances Clients
     END.
   }
 }
+
 OBJECT XMLport 50061 Export Dettes Fournisseurs
 {
   OBJECT-PROPERTIES
@@ -689,15 +719,15 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{4B0083E1-A8E0-4592-930E-80CD94D72A8F}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{4B0083E1-A8E0-4592-930E-80CD94D72A8F}];  ;Root                ;Element ;Text     }
+
     { [{08F1C0A2-3D02-4985-82E8-F79C095E88E0}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -706,6 +736,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                            ERROR('Renseignez la date d arrete.');
                                                                        END;
                                                                         }
+
     { [{8DDC4DA7-A4F8-45B2-A975-95760F95D8E5}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -714,17 +745,20 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    'MontantInitial;ResteDu;JoursRetard;Tranche;ConditionPaiement;Bloque;ModeReglement;Solde;DocExterne';
                                                                                END;
                                                                                 }
+
     { [{87072B4B-0FF9-4D0B-913C-A6E36A4FB661}];1 ;FOURNISSEURS        ;Element ;Table   ;
                                                   SourceTable=Table23;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          Vendor.SETRANGE("Date Filter",0D,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              Vendor.CALCFIELDS("Net Change (LCY)");
                                                                              IF Vendor."Net Change (LCY)" = 0 THEN
                                                                                currXMLport.SKIP;
                                                                            END;
                                                                             }
+
     { [{30F28980-E692-410B-9CEA-6814DBAE07CB}];2 ;LigneFournisseur    ;Element ;Text    ;
                                                   VariableName=LigneFournisseur;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -736,6 +770,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    T(Vendor."Payment Method Code") + ';' + N(-Vendor."Net Change (LCY)") + ';';
                                                                                END;
                                                                                 }
+
     { [{1B851DAD-835F-47AD-8BA5-BB5CE010E7CB}];1 ;ECRITURES           ;Element ;Table   ;
                                                   SourceTable=Table25;
                                                   Export::OnPreXMLItem=BEGIN
@@ -744,6 +779,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                            "Vendor Ledger Entry".SETRANGE(Open,TRUE);
                                                                          "Vendor Ledger Entry".SETRANGE("Date Filter",0D,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              "Vendor Ledger Entry".CALCFIELDS("Amount (LCY)","Remaining Amt. (LCY)");
                                                                              IF "Vendor Ledger Entry"."Remaining Amt. (LCY)" = 0 THEN
@@ -755,6 +791,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                              NomFrs("Vendor Ledger Entry"."Vendor No.");
                                                                            END;
                                                                             }
+
     { [{064D0056-E532-4341-8D54-7DF1290F3BCF}];2 ;LigneEcriture       ;Element ;Text    ;
                                                   VariableName=LigneEcriture;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -768,6 +805,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    T("Vendor Ledger Entry"."External Document No.");
                                                                                END;
                                                                                 }
+
     { [{A939972C-68A5-4324-9D6F-3C093EB3A84E}];1 ;DECAISSEMENTS       ;Element ;Table   ;
                                                   VariableName=Paiement;
                                                   SourceTable=Table25;
@@ -778,11 +816,13 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                          ELSE
                                                                            Paiement.SETRANGE("Posting Date",DateDebut,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              Paiement.CALCFIELDS("Amount (LCY)");
                                                                              NomFrs(Paiement."Vendor No.");
                                                                            END;
                                                                             }
+
     { [{BC9F2C73-DC6C-4700-9F4A-4B1544B3FD55}];2 ;LignePaiement       ;Element ;Text    ;
                                                   VariableName=LignePaiement;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -794,6 +834,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                    T(Paiement."Payment Method Code") + ';;' + T(Paiement."External Document No.");
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -808,14 +849,17 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Debut periode decaissements (facultatif);
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date d arrete;
                   SourceExpr=DateFin }
+
     }
   }
   CODE
@@ -889,6 +933,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
     END.
   }
 }
+
 OBJECT XMLport 50062 Export Tresorerie
 {
   OBJECT-PROPERTIES
@@ -901,15 +946,15 @@ OBJECT XMLport 50062 Export Tresorerie
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{5B0083E1-A8E0-4592-930E-80CD94D72A90}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{5B0083E1-A8E0-4592-930E-80CD94D72A90}];  ;Root                ;Element ;Text     }
+
     { [{D5540051-7869-4BD6-BA85-6952D5FEA0FB}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -918,6 +963,7 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                            ERROR('Renseignez la date de debut et la date de fin.');
                                                                        END;
                                                                         }
+
     { [{CECBE743-C116-43D5-A4D7-63452EFBD35E}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -926,15 +972,18 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                                    'TypeContrepartie;Contrepartie;DocExterne';
                                                                                END;
                                                                                 }
+
     { [{C5002FBD-19D7-4BDB-8622-C3DEDC3EAC8A}];1 ;BANQUES             ;Element ;Table   ;
                                                   SourceTable=Table270;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          "Bank Account".SETRANGE("Date Filter",0D,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              "Bank Account".CALCFIELDS("Balance at Date (LCY)");
                                                                            END;
                                                                             }
+
     { [{F5CCD32F-FE2C-4AAD-B771-C121DBED3EAF}];2 ;LigneBanque         ;Element ;Text    ;
                                                   VariableName=LigneBanque;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -944,11 +993,13 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                                    N("Bank Account"."Balance at Date (LCY)") + ';;;;;;';
                                                                                END;
                                                                                 }
+
     { [{517D0011-E38F-4C71-8C9C-9F42A42ED292}];1 ;MOUVEMENTS          ;Element ;Table   ;
                                                   SourceTable=Table271;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          "Bank Account Ledger Entry".SETRANGE("Posting Date",DateDebut,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Bank Account Ledger Entry"."Bank Account No." <> CacheBq THEN BEGIN
                                                                                CacheBq := "Bank Account Ledger Entry"."Bank Account No.";
@@ -958,6 +1009,7 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                              END;
                                                                            END;
                                                                             }
+
     { [{A8020622-AA3C-4DC7-A385-8B0EBE3BDFAC}];2 ;LigneMouvement      ;Element ;Text    ;
                                                   VariableName=LigneMouvement;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -969,6 +1021,7 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                                    T("Bank Account Ledger Entry"."Bal. Account No.") + ';' + T("Bank Account Ledger Entry"."External Document No.");
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -983,14 +1036,17 @@ OBJECT XMLport 50062 Export Tresorerie
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Date debut mouvements;
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date fin / date du solde;
                   SourceExpr=DateFin }
+
     }
   }
   CODE
@@ -1052,6 +1108,7 @@ OBJECT XMLport 50062 Export Tresorerie
     END.
   }
 }
+
 OBJECT XMLport 50063 Export Carnet Commandes
 {
   OBJECT-PROPERTIES
@@ -1064,15 +1121,15 @@ OBJECT XMLport 50063 Export Carnet Commandes
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{6B0083E1-A8E0-4592-930E-80CD94D72A91}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{6B0083E1-A8E0-4592-930E-80CD94D72A91}];  ;Root                ;Element ;Text     }
+
     { [{5CDEDA8B-4221-4A55-8016-D2AB3D51FE59}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -1081,6 +1138,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                            DateRef := WORKDATE;
                                                                        END;
                                                                         }
+
     { [{36B948D7-357A-4442-9EBB-6D80EBB1E17B}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -1089,6 +1147,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                    'Description;QteRestante;MontantRestantHT;QteLivreeNonFacturee;JoursRetard;Magasin;CreePar';
                                                                                END;
                                                                                 }
+
     { [{342DAF89-F94A-4E4E-9E51-50D4FCEC1B0F}];1 ;CDE_VENTE           ;Element ;Table   ;
                                                   SourceTable=Table37;
                                                   Export::OnPreXMLItem=BEGIN
@@ -1096,6 +1155,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                          "Sales Line".SETRANGE(Type,"Sales Line".Type::Item);
                                                                          "Sales Line".SETFILTER("Outstanding Quantity",'<>0');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Sales Line"."Document No." <> CacheDoc THEN BEGIN
                                                                                CacheDoc := "Sales Line"."Document No.";
@@ -1110,6 +1170,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                              Jours := Retard("Sales Line"."Shipment Date",DateRef);
                                                                            END;
                                                                             }
+
     { [{99923FD9-F862-4186-84C9-F9247C8E6392}];2 ;LigneCdeVente       ;Element ;Text    ;
                                                   VariableName=LigneCdeVente;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -1124,6 +1185,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                    I(Jours) + ';' + T("Sales Line"."Location Code") + ';' + T(SalesHdr."Created By");
                                                                                END;
                                                                                 }
+
     { [{E61C109D-B347-4421-84C1-28C8AFC33840}];1 ;CDE_ACHAT           ;Element ;Table   ;
                                                   SourceTable=Table39;
                                                   Export::OnPreXMLItem=BEGIN
@@ -1131,6 +1193,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                          "Purchase Line".SETRANGE(Type,"Purchase Line".Type::Item);
                                                                          "Purchase Line".SETFILTER("Outstanding Quantity",'<>0');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Purchase Line"."Document No." <> CacheDocA THEN BEGIN
                                                                                CacheDocA := "Purchase Line"."Document No.";
@@ -1144,6 +1207,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                              Jours := Retard("Purchase Line"."Expected Receipt Date",DateRef);
                                                                            END;
                                                                             }
+
     { [{E5DEA5B9-4313-412F-B729-068EF4646684}];2 ;LigneCdeAchat       ;Element ;Text    ;
                                                   VariableName=LigneCdeAchat;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -1157,6 +1221,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                    I(Jours) + ';' + T("Purchase Line"."Location Code") + ';';
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -1171,10 +1236,12 @@ OBJECT XMLport 50063 Export Carnet Commandes
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateRef;
                   CaptionML=FRA=Date de reference (vide = date de travail);
                   SourceExpr=DateRef }
+
     }
   }
   CODE
@@ -1265,6 +1332,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
     END.
   }
 }
+
 OBJECT XMLport 50064 Export Achats
 {
   OBJECT-PROPERTIES
@@ -1277,15 +1345,15 @@ OBJECT XMLport 50064 Export Achats
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{7B0083E1-A8E0-4592-930E-80CD94D72A92}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{7B0083E1-A8E0-4592-930E-80CD94D72A92}];  ;Root                ;Element ;Text     }
+
     { [{7E024E2A-B455-4E7D-88C2-C47A64EEA0A8}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -1294,6 +1362,7 @@ OBJECT XMLport 50064 Export Achats
                                                                            ERROR('Renseignez la date de debut et la date de fin.');
                                                                        END;
                                                                         }
+
     { [{73ECFA64-2431-4A74-BA21-1C7F7D7AA82E}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -1302,6 +1371,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    'Quantite;MontantHT_LCY;Devise;MontantHT_Devise;Magasin;TypeLigne';
                                                                                END;
                                                                                 }
+
     { [{5DAE695F-1B3A-489F-80BB-5D756015C08C}];1 ;FACTURES            ;Element ;Table   ;
                                                   SourceTable=Table123;
                                                   Export::OnPreXMLItem=BEGIN
@@ -1309,6 +1379,7 @@ OBJECT XMLport 50064 Export Achats
                                                                          "Purch. Inv. Line".SETFILTER(Type,'%1|%2',"Purch. Inv. Line".Type::Item,"Purch. Inv. Line".Type::"Charge (Item)");
                                                                          "Purch. Inv. Line".SETFILTER("No.",'<>%1','');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Purch. Inv. Line"."Document No." <> CacheDoc THEN BEGIN
                                                                                CacheDoc := "Purch. Inv. Line"."Document No.";
@@ -1322,6 +1393,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                MtLCY := ROUND("Purch. Inv. Line".Amount / PIH."Currency Factor",0.001);
                                                                            END;
                                                                             }
+
     { [{789EA994-C6AC-496E-9E60-329D034C2E95}];2 ;LigneFacture        ;Element ;Text    ;
                                                   VariableName=LigneFacture;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -1333,6 +1405,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    T("Purch. Inv. Line"."Location Code") + ';' + FORMAT("Purch. Inv. Line".Type,0,2);
                                                                                END;
                                                                                 }
+
     { [{D26B74D8-3551-4BE0-AA91-9A3C948EC167}];1 ;AVOIRS              ;Element ;Table   ;
                                                   SourceTable=Table125;
                                                   Export::OnPreXMLItem=BEGIN
@@ -1340,6 +1413,7 @@ OBJECT XMLport 50064 Export Achats
                                                                          "Purch. Cr. Memo Line".SETFILTER(Type,'%1|%2',"Purch. Cr. Memo Line".Type::Item,"Purch. Cr. Memo Line".Type::"Charge (Item)");
                                                                          "Purch. Cr. Memo Line".SETFILTER("No.",'<>%1','');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Purch. Cr. Memo Line"."Document No." <> CacheDocA THEN BEGIN
                                                                                CacheDocA := "Purch. Cr. Memo Line"."Document No.";
@@ -1352,6 +1426,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                MtLCY := ROUND("Purch. Cr. Memo Line".Amount / PCH."Currency Factor",0.001);
                                                                            END;
                                                                             }
+
     { [{7B50A98B-E8E1-4789-BB32-64DF8468800D}];2 ;LigneAvoir          ;Element ;Text    ;
                                                   VariableName=LigneAvoir;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -1364,6 +1439,7 @@ OBJECT XMLport 50064 Export Achats
                                                                                    T("Purch. Cr. Memo Line"."Location Code") + ';' + FORMAT("Purch. Cr. Memo Line".Type,0,2);
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -1378,14 +1454,17 @@ OBJECT XMLport 50064 Export Achats
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Date debut;
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date fin;
                   SourceExpr=DateFin }
+
     }
   }
   CODE
@@ -1466,3 +1545,4 @@ OBJECT XMLport 50064 Export Achats
     END.
   }
 }
+

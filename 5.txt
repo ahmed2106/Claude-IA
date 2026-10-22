@@ -10,15 +10,15 @@ OBJECT XMLport 50062 Export Tresorerie
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{5B0083E1-A8E0-4592-930E-80CD94D72A90}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{5B0083E1-A8E0-4592-930E-80CD94D72A90}];  ;Root                ;Element ;Text     }
+
     { [{D5540051-7869-4BD6-BA85-6952D5FEA0FB}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -27,6 +27,7 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                            ERROR('Renseignez la date de debut et la date de fin.');
                                                                        END;
                                                                         }
+
     { [{CECBE743-C116-43D5-A4D7-63452EFBD35E}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -35,15 +36,18 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                                    'TypeContrepartie;Contrepartie;DocExterne';
                                                                                END;
                                                                                 }
+
     { [{C5002FBD-19D7-4BDB-8622-C3DEDC3EAC8A}];1 ;BANQUES             ;Element ;Table   ;
                                                   SourceTable=Table270;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          "Bank Account".SETRANGE("Date Filter",0D,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              "Bank Account".CALCFIELDS("Balance at Date (LCY)");
                                                                            END;
                                                                             }
+
     { [{F5CCD32F-FE2C-4AAD-B771-C121DBED3EAF}];2 ;LigneBanque         ;Element ;Text    ;
                                                   VariableName=LigneBanque;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -53,11 +57,13 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                                    N("Bank Account"."Balance at Date (LCY)") + ';;;;;;';
                                                                                END;
                                                                                 }
+
     { [{517D0011-E38F-4C71-8C9C-9F42A42ED292}];1 ;MOUVEMENTS          ;Element ;Table   ;
                                                   SourceTable=Table271;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          "Bank Account Ledger Entry".SETRANGE("Posting Date",DateDebut,DateFin);
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Bank Account Ledger Entry"."Bank Account No." <> CacheBq THEN BEGIN
                                                                                CacheBq := "Bank Account Ledger Entry"."Bank Account No.";
@@ -67,6 +73,7 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                              END;
                                                                            END;
                                                                             }
+
     { [{A8020622-AA3C-4DC7-A385-8B0EBE3BDFAC}];2 ;LigneMouvement      ;Element ;Text    ;
                                                   VariableName=LigneMouvement;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -78,6 +85,7 @@ OBJECT XMLport 50062 Export Tresorerie
                                                                                    T("Bank Account Ledger Entry"."Bal. Account No.") + ';' + T("Bank Account Ledger Entry"."External Document No.");
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -92,14 +100,17 @@ OBJECT XMLport 50062 Export Tresorerie
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateDebut;
                   CaptionML=FRA=Date debut mouvements;
                   SourceExpr=DateDebut }
+
       { 1000000002;1;Field  ;
                   Name=DateFin;
                   CaptionML=FRA=Date fin / date du solde;
                   SourceExpr=DateFin }
+
     }
   }
   CODE
@@ -161,3 +172,4 @@ OBJECT XMLport 50062 Export Tresorerie
     END.
   }
 }
+

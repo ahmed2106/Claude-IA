@@ -10,15 +10,15 @@ OBJECT XMLport 50063 Export Carnet Commandes
   PROPERTIES
   {
     Direction=Export;
-    Encoding=UTF-8;
+    TextEncoding=UTF-8;
     Format=Variable Text;
     FieldDelimiter=<None>;
     TableSeparator=<NewLine>;
   }
   ELEMENTS
   {
-    { [{6B0083E1-A8E0-4592-930E-80CD94D72A91}];  ;Root                ;Element ;Text    ;
-                                                  MaxOccurs=Unbounded }
+    { [{6B0083E1-A8E0-4592-930E-80CD94D72A91}];  ;Root                ;Element ;Text     }
+
     { [{5CDEDA8B-4221-4A55-8016-D2AB3D51FE59}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
@@ -27,6 +27,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                            DateRef := WORKDATE;
                                                                        END;
                                                                         }
+
     { [{36B948D7-357A-4442-9EBB-6D80EBB1E17B}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -35,6 +36,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                    'Description;QteRestante;MontantRestantHT;QteLivreeNonFacturee;JoursRetard;Magasin;CreePar';
                                                                                END;
                                                                                 }
+
     { [{342DAF89-F94A-4E4E-9E51-50D4FCEC1B0F}];1 ;CDE_VENTE           ;Element ;Table   ;
                                                   SourceTable=Table37;
                                                   Export::OnPreXMLItem=BEGIN
@@ -42,6 +44,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                          "Sales Line".SETRANGE(Type,"Sales Line".Type::Item);
                                                                          "Sales Line".SETFILTER("Outstanding Quantity",'<>0');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Sales Line"."Document No." <> CacheDoc THEN BEGIN
                                                                                CacheDoc := "Sales Line"."Document No.";
@@ -56,6 +59,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                              Jours := Retard("Sales Line"."Shipment Date",DateRef);
                                                                            END;
                                                                             }
+
     { [{99923FD9-F862-4186-84C9-F9247C8E6392}];2 ;LigneCdeVente       ;Element ;Text    ;
                                                   VariableName=LigneCdeVente;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -70,6 +74,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                    I(Jours) + ';' + T("Sales Line"."Location Code") + ';' + T(SalesHdr."Created By");
                                                                                END;
                                                                                 }
+
     { [{E61C109D-B347-4421-84C1-28C8AFC33840}];1 ;CDE_ACHAT           ;Element ;Table   ;
                                                   SourceTable=Table39;
                                                   Export::OnPreXMLItem=BEGIN
@@ -77,6 +82,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                          "Purchase Line".SETRANGE(Type,"Purchase Line".Type::Item);
                                                                          "Purchase Line".SETFILTER("Outstanding Quantity",'<>0');
                                                                        END;
+
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              IF "Purchase Line"."Document No." <> CacheDocA THEN BEGIN
                                                                                CacheDocA := "Purchase Line"."Document No.";
@@ -90,6 +96,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                              Jours := Retard("Purchase Line"."Expected Receipt Date",DateRef);
                                                                            END;
                                                                             }
+
     { [{E5DEA5B9-4313-412F-B729-068EF4646684}];2 ;LigneCdeAchat       ;Element ;Text    ;
                                                   VariableName=LigneCdeAchat;
                                                   Export::OnBeforePassVariable=BEGIN
@@ -103,6 +110,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
                                                                                    I(Jours) + ';' + T("Purchase Line"."Location Code") + ';';
                                                                                END;
                                                                                 }
+
   }
   EVENTS
   {
@@ -117,10 +125,12 @@ OBJECT XMLport 50063 Export Carnet Commandes
       { 1000000000;;Container;
                   Name=Options;
                   ContainerType=ContentArea }
+
       { 1000000001;1;Field  ;
                   Name=DateRef;
                   CaptionML=FRA=Date de reference (vide = date de travail);
                   SourceExpr=DateRef }
+
     }
   }
   CODE
@@ -211,3 +221,4 @@ OBJECT XMLport 50063 Export Carnet Commandes
     END.
   }
 }
+
