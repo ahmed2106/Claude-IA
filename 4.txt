@@ -143,7 +143,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
 
       { 1000000001;1;Field  ;
                   Name=DateDebut;
-                  CaptionML=FRA=Debut periode decaissements (facultatif);
+                  CaptionML=FRA=Debut periode decaissements;
                   SourceExpr=DateDebut }
 
       { 1000000002;1;Field  ;

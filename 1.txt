@@ -615,7 +615,7 @@ OBJECT XMLport 50060 Export Creances Clients
 
       { 1000000001;1;Field  ;
                   Name=DateDebut;
-                  CaptionML=FRA=Debut periode encaissements (facultatif);
+                  CaptionML=FRA=Debut periode encaissements;
                   SourceExpr=DateDebut }
 
       { 1000000002;1;Field  ;
@@ -852,7 +852,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
 
       { 1000000001;1;Field  ;
                   Name=DateDebut;
-                  CaptionML=FRA=Debut periode decaissements (facultatif);
+                  CaptionML=FRA=Debut periode decaissements;
                   SourceExpr=DateDebut }
 
       { 1000000002;1;Field  ;
@@ -1044,7 +1044,7 @@ OBJECT XMLport 50062 Export Tresorerie
 
       { 1000000002;1;Field  ;
                   Name=DateFin;
-                  CaptionML=FRA=Date fin / date du solde;
+                  CaptionML=FRA=Date fin;
                   SourceExpr=DateFin }
 
     }
@@ -1239,7 +1239,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
 
       { 1000000001;1;Field  ;
                   Name=DateRef;
-                  CaptionML=FRA=Date de reference (facultatif);
+                  CaptionML=FRA=Date de reference;
                   SourceExpr=DateRef }
 
     }

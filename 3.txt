@@ -145,7 +145,7 @@ OBJECT XMLport 50060 Export Creances Clients
 
       { 1000000001;1;Field  ;
                   Name=DateDebut;
-                  CaptionML=FRA=Debut periode encaissements (facultatif);
+                  CaptionML=FRA=Debut periode encaissements;
                   SourceExpr=DateDebut }
 
       { 1000000002;1;Field  ;

@@ -108,7 +108,7 @@ OBJECT XMLport 50062 Export Tresorerie
 
       { 1000000002;1;Field  ;
                   Name=DateFin;
-                  CaptionML=FRA=Date fin / date du solde;
+                  CaptionML=FRA=Date fin;
                   SourceExpr=DateFin }
 
     }
