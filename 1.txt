@@ -1239,7 +1239,7 @@ OBJECT XMLport 50063 Export Carnet Commandes
 
       { 1000000001;1;Field  ;
                   Name=DateRef;
-                  CaptionML=FRA=Date de reference (vide = date de travail);
+                  CaptionML=FRA=Date de reference (facultatif);
                   SourceExpr=DateRef }
 
     }
