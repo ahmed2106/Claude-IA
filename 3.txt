@@ -1,0 +1,217 @@
+OBJECT XMLport 50060 Export Creances Clients
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22/10/26;
+    Time=09:00:00;
+    Modified=Yes;
+    Version List=RAPPORT;
+  }
+  PROPERTIES
+  {
+    Direction=Export;
+    Encoding=UTF-8;
+    Format=Variable Text;
+    FieldDelimiter=<None>;
+    TableSeparator=<NewLine>;
+  }
+  ELEMENTS
+  {
+    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text    ;
+                                                  MaxOccurs=Unbounded }
+    { [{7A53A958-A71A-46F3-B323-7542CB2982FC}];1 ;ENTETE              ;Element ;Table   ;
+                                                  SourceTable=Table2000000026;
+                                                  SourceTableView=WHERE(Field1=CONST(1));
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         IF DateFin = 0D THEN
+                                                                           ERROR('Renseignez la date d arrete.');
+                                                                       END;
+                                                   }
+    { [{E9EF8356-EA6C-4842-8402-DAD529495445}];2 ;LigneEntete         ;Element ;Text    ;
+                                                  VariableName=LigneEntete;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneEntete :=
+                                                                                   'Source;DateArrete;Client;NomClient;Charge;Agence;GroupeClient;Document;TypeDoc;DateComptable;DateEcheance;' +
+                                                                                   'MontantInitial;ResteDu;JoursRetard;Tranche;LimiteCredit;ConditionPaiement;Bloque;ModeReglement;Solde';
+                                                                               END;
+                                                   }
+    { [{9C6B8E19-ADE1-4034-ADFC-BC7E2FC89999}];1 ;CLIENTS             ;Element ;Table   ;
+                                                  SourceTable=Table18;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         Customer.SETRANGE("Date Filter",0D,DateFin);
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             Customer.CALCFIELDS("Net Change (LCY)");
+                                                                             IF (Customer."Net Change (LCY)" = 0) AND (Customer."Credit Limit (LCY)" = 0) THEN
+                                                                               currXMLport.SKIP;
+                                                                           END;
+                                                   }
+    { [{ADBFC5C9-4630-4AE1-B76C-6B41C06580DF}];2 ;LigneClient         ;Element ;Text    ;
+                                                  VariableName=LigneClient;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneClient :=
+                                                                                   'F;' + FDate(DateFin) + ';' + T(Customer."No.") + ';' + T(Customer.Name) + ';' +
+                                                                                   T(Customer."Salesperson Code") + ';' + T(AgenceDe(Customer."Salesperson Code")) + ';' +
+                                                                                   T(Customer."Customer Posting Group") + ';;;;;;;;;' +
+                                                                                   N(Customer."Credit Limit (LCY)") + ';' + T(Customer."Payment Terms Code") + ';' +
+                                                                                   FORMAT(Customer.Blocked,0,2) + ';' + T(Customer."Payment Method Code") + ';' + N(Customer."Net Change (LCY)");
+                                                                               END;
+                                                   }
+    { [{6C9A53B4-B818-4898-8485-D3AAE1E8C765}];1 ;ECRITURES           ;Element ;Table   ;
+                                                  SourceTable=Table21;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         "Cust. Ledger Entry".SETRANGE("Posting Date",0D,DateFin);
+                                                                         // arrete a aujourd hui ou apres : seules les ecritures ouvertes (beaucoup plus rapide)
+                                                                         IF DateFin >= TODAY THEN
+                                                                           "Cust. Ledger Entry".SETRANGE(Open,TRUE);
+                                                                         "Cust. Ledger Entry".SETRANGE("Date Filter",0D,DateFin);
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             // reste du a la date d arrete (FlowField filtre par Date Filter)
+                                                                             "Cust. Ledger Entry".CALCFIELDS("Amount (LCY)","Remaining Amt. (LCY)");
+                                                                             IF "Cust. Ledger Entry"."Remaining Amt. (LCY)" = 0 THEN
+                                                                               currXMLport.SKIP;
+                                                                             Ech := "Cust. Ledger Entry"."Due Date";
+                                                                             IF Ech = 0D THEN
+                                                                               Ech := "Cust. Ledger Entry"."Posting Date";
+                                                                             Jours := Retard(Ech,DateFin);
+                                                                             NomCli("Cust. Ledger Entry"."Customer No.");
+                                                                           END;
+                                                   }
+    { [{91555D03-1391-432F-ADBF-EB480530EE9F}];2 ;LigneEcriture       ;Element ;Text    ;
+                                                  VariableName=LigneEcriture;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneEcriture :=
+                                                                                   'E;' + FDate(DateFin) + ';' + T("Cust. Ledger Entry"."Customer No.") + ';' + T(NomClient) + ';' +
+                                                                                   T("Cust. Ledger Entry"."Salesperson Code") + ';' + T(AgenceDe("Cust. Ledger Entry"."Salesperson Code")) + ';' +
+                                                                                   T("Cust. Ledger Entry"."Customer Posting Group") + ';' + T("Cust. Ledger Entry"."Document No.") + ';' +
+                                                                                   FORMAT("Cust. Ledger Entry"."Document Type",0,2) + ';' + FDate("Cust. Ledger Entry"."Posting Date") + ';' +
+                                                                                   FDate(Ech) + ';' + N("Cust. Ledger Entry"."Amount (LCY)") + ';' + N("Cust. Ledger Entry"."Remaining Amt. (LCY)") + ';' +
+                                                                                   I(Jours) + ';' + Tranche(Jours) + ';;;;' + T("Cust. Ledger Entry"."Payment Method Code") + ';';
+                                                                               END;
+                                                   }
+    { [{676827DA-48AE-40BE-9836-FA1F5EB15A20}];1 ;ENCAISSEMENTS       ;Element ;Table   ;
+                                                  SourceTable=Table21;
+                                                  VariableName=Paiement;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         // encaissements de la periode (taux de recouvrement, flux) ; vide si date debut non renseignee
+                                                                         Paiement.SETRANGE("Document Type",Paiement."Document Type"::Payment);
+                                                                         IF DateDebut = 0D THEN
+                                                                           Paiement.SETRANGE("Entry No.",0)
+                                                                         ELSE
+                                                                           Paiement.SETRANGE("Posting Date",DateDebut,DateFin);
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             Paiement.CALCFIELDS("Amount (LCY)");
+                                                                             NomCli(Paiement."Customer No.");
+                                                                           END;
+                                                   }
+    { [{1E1A3AFD-DE6A-4DD1-978C-B1E5A40A98C3}];2 ;LignePaiement       ;Element ;Text    ;
+                                                  VariableName=LignePaiement;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LignePaiement :=
+                                                                                   'P;;' + T(Paiement."Customer No.") + ';' + T(NomClient) + ';' +
+                                                                                   T(Paiement."Salesperson Code") + ';' + T(AgenceDe(Paiement."Salesperson Code")) + ';' +
+                                                                                   T(Paiement."Customer Posting Group") + ';' + T(Paiement."Document No.") + ';' +
+                                                                                   FORMAT(Paiement."Document Type",0,2) + ';' + FDate(Paiement."Posting Date") + ';;' +
+                                                                                   N(-Paiement."Amount (LCY)") + ';;;;;;;' + T(Paiement."Payment Method Code") + ';';
+                                                                               END;
+                                                   }
+  }
+  EVENTS
+  {
+  }
+  REQUESTPAGE
+  {
+    PROPERTIES
+    {
+    }
+    CONTROLS
+    {
+      { 1000000000;;Container;
+                  Name=Options;
+                  ContainerType=ContentArea }
+      { 1000000001;1;Field  ;
+                  Name=DateDebut;
+                  CaptionML=FRA=Debut periode encaissements (facultatif);
+                  SourceExpr=DateDebut }
+      { 1000000002;1;Field  ;
+                  Name=DateFin;
+                  CaptionML=FRA=Date d arrete;
+                  SourceExpr=DateFin }
+    }
+  }
+  CODE
+  {
+    VAR
+      DateDebut@1000000100 : Date;
+      DateFin@1000000101 : Date;
+      Ech@1000000102 : Date;
+      Jours@1000000103 : Integer;
+      Cust@1000000104 : Record 18;
+      SP@1000000105 : Record 13;
+      NomClient@1000000106 : Text[100];
+      CacheCli@1000000107 : Code[20];
+    PROCEDURE FDate@1000000010(D@1000000000 : Date) : Text[10];
+    BEGIN
+      IF D = 0D THEN
+        EXIT('');
+      EXIT(FORMAT(D,0,'<Year4>-<Month,2>-<Day,2>'));
+    END;
+
+    PROCEDURE T@1000000011(Txt@1000000000 : Text[250]) : Text[250];
+    BEGIN
+      EXIT(DELCHR(CONVERTSTR(Txt,';',','),'=','"'));
+    END;
+
+    PROCEDURE N@1000000012(Val@1000000000 : Decimal) : Text[30];
+    BEGIN
+      EXIT(FORMAT(Val,0,9));
+    END;
+
+    PROCEDURE I@1000000013(Val@1000000000 : Integer) : Text[30];
+    BEGIN
+      EXIT(FORMAT(Val,0,9));
+    END;
+
+    PROCEDURE Tranche@1000000014(J@1000000000 : Integer) : Text[10];
+    BEGIN
+      IF J <= 0 THEN EXIT('NON ECHU');
+      IF J <= 30 THEN EXIT('1-30');
+      IF J <= 60 THEN EXIT('31-60');
+      IF J <= 90 THEN EXIT('61-90');
+      IF J <= 180 THEN EXIT('91-180');
+      IF J <= 365 THEN EXIT('181-365');
+      EXIT('+365');
+    END;
+
+    PROCEDURE Retard@1000000015(Ech@1000000000 : Date;Ref@1000000001 : Date) : Integer;
+    BEGIN
+      IF (Ech = 0D) OR (Ech >= Ref) THEN
+        EXIT(0);
+      EXIT(Ref - Ech);
+    END;
+
+    PROCEDURE AgenceDe@1000000016(Charge@1000000000 : Code[20]) : Text[20];
+    BEGIN
+      IF Charge = '' THEN
+        EXIT('');
+      IF SP.GET(COPYSTR(Charge,1,MAXSTRLEN(SP.Code))) THEN
+        EXIT(FORMAT(SP."Sales Resp. Ctr. Filter"));
+      EXIT('');
+    END;
+
+    PROCEDURE NomCli@1000000018(No@1000000000 : Code[20]);
+    BEGIN
+      IF No = CacheCli THEN
+        EXIT;
+      CacheCli := No;
+      NomClient := '';
+      IF Cust.GET(No) THEN
+        NomClient := Cust.Name;
+    END;
+
+    BEGIN
+    END.
+  }
+}

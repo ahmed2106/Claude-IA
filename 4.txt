@@ -1,0 +1,205 @@
+OBJECT XMLport 50061 Export Dettes Fournisseurs
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22/10/26;
+    Time=09:00:00;
+    Modified=Yes;
+    Version List=RAPPORT;
+  }
+  PROPERTIES
+  {
+    Direction=Export;
+    Encoding=UTF-8;
+    Format=Variable Text;
+    FieldDelimiter=<None>;
+    TableSeparator=<NewLine>;
+  }
+  ELEMENTS
+  {
+    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text    ;
+                                                  MaxOccurs=Unbounded }
+    { [{08F1C0A2-3D02-4985-82E8-F79C095E88E0}];1 ;ENTETE              ;Element ;Table   ;
+                                                  SourceTable=Table2000000026;
+                                                  SourceTableView=WHERE(Field1=CONST(1));
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         IF DateFin = 0D THEN
+                                                                           ERROR('Renseignez la date d arrete.');
+                                                                       END;
+                                                   }
+    { [{8DDC4DA7-A4F8-45B2-A975-95760F95D8E5}];2 ;LigneEntete         ;Element ;Text    ;
+                                                  VariableName=LigneEntete;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneEntete :=
+                                                                                   'Source;DateArrete;Fournisseur;NomFournisseur;Acheteur;GroupeFournisseur;Document;TypeDoc;DateComptable;DateEcheance;' +
+                                                                                   'MontantInitial;ResteDu;JoursRetard;Tranche;ConditionPaiement;Bloque;ModeReglement;Solde;DocExterne';
+                                                                               END;
+                                                   }
+    { [{87072B4B-0FF9-4D0B-913C-A6E36A4FB661}];1 ;FOURNISSEURS        ;Element ;Table   ;
+                                                  SourceTable=Table23;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         Vendor.SETRANGE("Date Filter",0D,DateFin);
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             Vendor.CALCFIELDS("Net Change (LCY)");
+                                                                             IF Vendor."Net Change (LCY)" = 0 THEN
+                                                                               currXMLport.SKIP;
+                                                                           END;
+                                                   }
+    { [{30F28980-E692-410B-9CEA-6814DBAE07CB}];2 ;LigneFournisseur    ;Element ;Text    ;
+                                                  VariableName=LigneFournisseur;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 // montants inverses : positif = dette de COMAF
+                                                                                 LigneFournisseur :=
+                                                                                   'F;' + FDate(DateFin) + ';' + T(Vendor."No.") + ';' + T(Vendor.Name) + ';' +
+                                                                                   T(Vendor."Purchaser Code") + ';' + T(Vendor."Vendor Posting Group") + ';;;;;;;;;' +
+                                                                                   T(Vendor."Payment Terms Code") + ';' + FORMAT(Vendor.Blocked,0,2) + ';' +
+                                                                                   T(Vendor."Payment Method Code") + ';' + N(-Vendor."Net Change (LCY)") + ';';
+                                                                               END;
+                                                   }
+    { [{1B851DAD-835F-47AD-8BA5-BB5CE010E7CB}];1 ;ECRITURES           ;Element ;Table   ;
+                                                  SourceTable=Table25;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         "Vendor Ledger Entry".SETRANGE("Posting Date",0D,DateFin);
+                                                                         IF DateFin >= TODAY THEN
+                                                                           "Vendor Ledger Entry".SETRANGE(Open,TRUE);
+                                                                         "Vendor Ledger Entry".SETRANGE("Date Filter",0D,DateFin);
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             "Vendor Ledger Entry".CALCFIELDS("Amount (LCY)","Remaining Amt. (LCY)");
+                                                                             IF "Vendor Ledger Entry"."Remaining Amt. (LCY)" = 0 THEN
+                                                                               currXMLport.SKIP;
+                                                                             Ech := "Vendor Ledger Entry"."Due Date";
+                                                                             IF Ech = 0D THEN
+                                                                               Ech := "Vendor Ledger Entry"."Posting Date";
+                                                                             Jours := Retard(Ech,DateFin);
+                                                                             NomFrs("Vendor Ledger Entry"."Vendor No.");
+                                                                           END;
+                                                   }
+    { [{064D0056-E532-4341-8D54-7DF1290F3BCF}];2 ;LigneEcriture       ;Element ;Text    ;
+                                                  VariableName=LigneEcriture;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneEcriture :=
+                                                                                   'E;' + FDate(DateFin) + ';' + T("Vendor Ledger Entry"."Vendor No.") + ';' + T(NomFournisseur) + ';' +
+                                                                                   T("Vendor Ledger Entry"."Purchaser Code") + ';' + T("Vendor Ledger Entry"."Vendor Posting Group") + ';' +
+                                                                                   T("Vendor Ledger Entry"."Document No.") + ';' + FORMAT("Vendor Ledger Entry"."Document Type",0,2) + ';' +
+                                                                                   FDate("Vendor Ledger Entry"."Posting Date") + ';' + FDate(Ech) + ';' +
+                                                                                   N(-"Vendor Ledger Entry"."Amount (LCY)") + ';' + N(-"Vendor Ledger Entry"."Remaining Amt. (LCY)") + ';' +
+                                                                                   I(Jours) + ';' + Tranche(Jours) + ';;;' + T("Vendor Ledger Entry"."Payment Method Code") + ';;' +
+                                                                                   T("Vendor Ledger Entry"."External Document No.");
+                                                                               END;
+                                                   }
+    { [{A939972C-68A5-4324-9D6F-3C093EB3A84E}];1 ;DECAISSEMENTS       ;Element ;Table   ;
+                                                  SourceTable=Table25;
+                                                  VariableName=Paiement;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         Paiement.SETRANGE("Document Type",Paiement."Document Type"::Payment);
+                                                                         IF DateDebut = 0D THEN
+                                                                           Paiement.SETRANGE("Entry No.",0)
+                                                                         ELSE
+                                                                           Paiement.SETRANGE("Posting Date",DateDebut,DateFin);
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             Paiement.CALCFIELDS("Amount (LCY)");
+                                                                             NomFrs(Paiement."Vendor No.");
+                                                                           END;
+                                                   }
+    { [{BC9F2C73-DC6C-4700-9F4A-4B1544B3FD55}];2 ;LignePaiement       ;Element ;Text    ;
+                                                  VariableName=LignePaiement;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LignePaiement :=
+                                                                                   'P;;' + T(Paiement."Vendor No.") + ';' + T(NomFournisseur) + ';' +
+                                                                                   T(Paiement."Purchaser Code") + ';' + T(Paiement."Vendor Posting Group") + ';' +
+                                                                                   T(Paiement."Document No.") + ';' + FORMAT(Paiement."Document Type",0,2) + ';' +
+                                                                                   FDate(Paiement."Posting Date") + ';;' + N(Paiement."Amount (LCY)") + ';;;;;;' +
+                                                                                   T(Paiement."Payment Method Code") + ';;' + T(Paiement."External Document No.");
+                                                                               END;
+                                                   }
+  }
+  EVENTS
+  {
+  }
+  REQUESTPAGE
+  {
+    PROPERTIES
+    {
+    }
+    CONTROLS
+    {
+      { 1000000000;;Container;
+                  Name=Options;
+                  ContainerType=ContentArea }
+      { 1000000001;1;Field  ;
+                  Name=DateDebut;
+                  CaptionML=FRA=Debut periode decaissements (facultatif);
+                  SourceExpr=DateDebut }
+      { 1000000002;1;Field  ;
+                  Name=DateFin;
+                  CaptionML=FRA=Date d arrete;
+                  SourceExpr=DateFin }
+    }
+  }
+  CODE
+  {
+    VAR
+      DateDebut@1000000100 : Date;
+      DateFin@1000000101 : Date;
+      Ech@1000000102 : Date;
+      Jours@1000000103 : Integer;
+      Vend@1000000104 : Record 23;
+      NomFournisseur@1000000105 : Text[100];
+      CacheFrs@1000000106 : Code[20];
+    PROCEDURE FDate@1000000010(D@1000000000 : Date) : Text[10];
+    BEGIN
+      IF D = 0D THEN
+        EXIT('');
+      EXIT(FORMAT(D,0,'<Year4>-<Month,2>-<Day,2>'));
+    END;
+
+    PROCEDURE T@1000000011(Txt@1000000000 : Text[250]) : Text[250];
+    BEGIN
+      EXIT(DELCHR(CONVERTSTR(Txt,';',','),'=','"'));
+    END;
+
+    PROCEDURE N@1000000012(Val@1000000000 : Decimal) : Text[30];
+    BEGIN
+      EXIT(FORMAT(Val,0,9));
+    END;
+
+    PROCEDURE I@1000000013(Val@1000000000 : Integer) : Text[30];
+    BEGIN
+      EXIT(FORMAT(Val,0,9));
+    END;
+
+    PROCEDURE Tranche@1000000014(J@1000000000 : Integer) : Text[10];
+    BEGIN
+      IF J <= 0 THEN EXIT('NON ECHU');
+      IF J <= 30 THEN EXIT('1-30');
+      IF J <= 60 THEN EXIT('31-60');
+      IF J <= 90 THEN EXIT('61-90');
+      IF J <= 180 THEN EXIT('91-180');
+      IF J <= 365 THEN EXIT('181-365');
+      EXIT('+365');
+    END;
+
+    PROCEDURE Retard@1000000015(Ech@1000000000 : Date;Ref@1000000001 : Date) : Integer;
+    BEGIN
+      IF (Ech = 0D) OR (Ech >= Ref) THEN
+        EXIT(0);
+      EXIT(Ref - Ech);
+    END;
+
+    PROCEDURE NomFrs@1000000018(No@1000000000 : Code[20]);
+    BEGIN
+      IF No = CacheFrs THEN
+        EXIT;
+      CacheFrs := No;
+      NomFournisseur := '';
+      IF Vend.GET(No) THEN
+        NomFournisseur := Vend.Name;
+    END;
+
+    BEGIN
+    END.
+  }
+}

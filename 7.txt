@@ -1,0 +1,193 @@
+OBJECT XMLport 50064 Export Achats
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22/10/26;
+    Time=09:00:00;
+    Modified=Yes;
+    Version List=RAPPORT;
+  }
+  PROPERTIES
+  {
+    Direction=Export;
+    Encoding=UTF-8;
+    Format=Variable Text;
+    FieldDelimiter=<None>;
+    TableSeparator=<NewLine>;
+  }
+  ELEMENTS
+  {
+    { [{3B0083E1-A8E0-4592-930E-80CD94D72A8E}];  ;Root                ;Element ;Text    ;
+                                                  MaxOccurs=Unbounded }
+    { [{7E024E2A-B455-4E7D-88C2-C47A64EEA0A8}];1 ;ENTETE              ;Element ;Table   ;
+                                                  SourceTable=Table2000000026;
+                                                  SourceTableView=WHERE(Field1=CONST(1));
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         IF (DateDebut = 0D) OR (DateFin = 0D) THEN
+                                                                           ERROR('Renseignez la date de debut et la date de fin.');
+                                                                       END;
+                                                   }
+    { [{73ECFA64-2431-4A74-BA21-1C7F7D7AA82E}];2 ;LigneEntete         ;Element ;Text    ;
+                                                  VariableName=LigneEntete;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneEntete :=
+                                                                                   'Source;Date;Document;Fournisseur;NomFournisseur;Article;GrandeFamille;Famille;SousFamille;Description;' +
+                                                                                   'Quantite;MontantHT_LCY;Devise;MontantHT_Devise;Magasin;TypeLigne';
+                                                                               END;
+                                                   }
+    { [{5DAE695F-1B3A-489F-80BB-5D756015C08C}];1 ;FACTURES            ;Element ;Table   ;
+                                                  SourceTable=Table123;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         "Purch. Inv. Line".SETRANGE("Posting Date",DateDebut,DateFin);
+                                                                         "Purch. Inv. Line".SETFILTER(Type,'%1|%2',"Purch. Inv. Line".Type::Item,"Purch. Inv. Line".Type::"Charge (Item)");
+                                                                         "Purch. Inv. Line".SETFILTER("No.",'<>%1','');
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             IF "Purch. Inv. Line"."Document No." <> CacheDoc THEN BEGIN
+                                                                               CacheDoc := "Purch. Inv. Line"."Document No.";
+                                                                               IF NOT PIH.GET(CacheDoc) THEN
+                                                                                 CLEAR(PIH);
+                                                                             END;
+                                                                             FamArt("Purch. Inv. Line"."No.");
+                                                                             // conversion en dinars (factures import en devise)
+                                                                             MtLCY := "Purch. Inv. Line".Amount;
+                                                                             IF PIH."Currency Factor" <> 0 THEN
+                                                                               MtLCY := ROUND("Purch. Inv. Line".Amount / PIH."Currency Factor",0.001);
+                                                                           END;
+                                                   }
+    { [{789EA994-C6AC-496E-9E60-329D034C2E95}];2 ;LigneFacture        ;Element ;Text    ;
+                                                  VariableName=LigneFacture;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneFacture :=
+                                                                                   'AF;' + FDate("Purch. Inv. Line"."Posting Date") + ';' + T("Purch. Inv. Line"."Document No.") + ';' +
+                                                                                   T("Purch. Inv. Line"."Buy-from Vendor No.") + ';' + T(PIH."Buy-from Vendor Name") + ';' +
+                                                                                   T("Purch. Inv. Line"."No.") + ';' + T(GF) + ';' + T(FB) + ';' + T(SFB) + ';' + T("Purch. Inv. Line".Description) + ';' +
+                                                                                   N("Purch. Inv. Line".Quantity) + ';' + N(MtLCY) + ';' + T(PIH."Currency Code") + ';' + N("Purch. Inv. Line".Amount) + ';' +
+                                                                                   T("Purch. Inv. Line"."Location Code") + ';' + FORMAT("Purch. Inv. Line".Type,0,2);
+                                                                               END;
+                                                   }
+    { [{D26B74D8-3551-4BE0-AA91-9A3C948EC167}];1 ;AVOIRS              ;Element ;Table   ;
+                                                  SourceTable=Table125;
+                                                  Export::OnPreXMLItem=BEGIN
+                                                                         "Purch. Cr. Memo Line".SETRANGE("Posting Date",DateDebut,DateFin);
+                                                                         "Purch. Cr. Memo Line".SETFILTER(Type,'%1|%2',"Purch. Cr. Memo Line".Type::Item,"Purch. Cr. Memo Line".Type::"Charge (Item)");
+                                                                         "Purch. Cr. Memo Line".SETFILTER("No.",'<>%1','');
+                                                                       END;
+                                                  Export::OnAfterGetRecord=BEGIN
+                                                                             IF "Purch. Cr. Memo Line"."Document No." <> CacheDocA THEN BEGIN
+                                                                               CacheDocA := "Purch. Cr. Memo Line"."Document No.";
+                                                                               IF NOT PCH.GET(CacheDocA) THEN
+                                                                                 CLEAR(PCH);
+                                                                             END;
+                                                                             FamArt("Purch. Cr. Memo Line"."No.");
+                                                                             MtLCY := "Purch. Cr. Memo Line".Amount;
+                                                                             IF PCH."Currency Factor" <> 0 THEN
+                                                                               MtLCY := ROUND("Purch. Cr. Memo Line".Amount / PCH."Currency Factor",0.001);
+                                                                           END;
+                                                   }
+    { [{7B50A98B-E8E1-4789-BB32-64DF8468800D}];2 ;LigneAvoir          ;Element ;Text    ;
+                                                  VariableName=LigneAvoir;
+                                                  Export::OnBeforePassVariable=BEGIN
+                                                                                 LigneAvoir :=
+                                                                                   'AA;' + FDate("Purch. Cr. Memo Line"."Posting Date") + ';' + T("Purch. Cr. Memo Line"."Document No.") + ';' +
+                                                                                   T("Purch. Cr. Memo Line"."Buy-from Vendor No.") + ';' + T(PCH."Buy-from Vendor Name") + ';' +
+                                                                                   T("Purch. Cr. Memo Line"."No.") + ';' + T(GF) + ';' + T(FB) + ';' + T(SFB) + ';' + T("Purch. Cr. Memo Line".Description) + ';' +
+                                                                                   N(-"Purch. Cr. Memo Line".Quantity) + ';' + N(-MtLCY) + ';' + T(PCH."Currency Code") + ';' + N(-"Purch. Cr. Memo Line".Amount) + ';' +
+                                                                                   T("Purch. Cr. Memo Line"."Location Code") + ';' + FORMAT("Purch. Cr. Memo Line".Type,0,2);
+                                                                               END;
+                                                   }
+  }
+  EVENTS
+  {
+  }
+  REQUESTPAGE
+  {
+    PROPERTIES
+    {
+    }
+    CONTROLS
+    {
+      { 1000000000;;Container;
+                  Name=Options;
+                  ContainerType=ContentArea }
+      { 1000000001;1;Field  ;
+                  Name=DateDebut;
+                  CaptionML=FRA=Date debut;
+                  SourceExpr=DateDebut }
+      { 1000000002;1;Field  ;
+                  Name=DateFin;
+                  CaptionML=FRA=Date fin;
+                  SourceExpr=DateFin }
+    }
+  }
+  CODE
+  {
+    VAR
+      DateDebut@1000000100 : Date;
+      DateFin@1000000101 : Date;
+      MtLCY@1000000102 : Decimal;
+      PIH@1000000103 : Record 122;
+      PCH@1000000104 : Record 124;
+      ItemF@1000000105 : Record 27;
+      GF@1000000106 : Code[20];
+      FB@1000000107 : Code[20];
+      SFB@1000000108 : Code[20];
+      CacheDoc@1000000109 : Code[20];
+      CacheDocA@1000000110 : Code[20];
+    PROCEDURE FDate@1000000010(D@1000000000 : Date) : Text[10];
+    BEGIN
+      IF D = 0D THEN
+        EXIT('');
+      EXIT(FORMAT(D,0,'<Year4>-<Month,2>-<Day,2>'));
+    END;
+
+    PROCEDURE T@1000000011(Txt@1000000000 : Text[250]) : Text[250];
+    BEGIN
+      EXIT(DELCHR(CONVERTSTR(Txt,';',','),'=','"'));
+    END;
+
+    PROCEDURE N@1000000012(Val@1000000000 : Decimal) : Text[30];
+    BEGIN
+      EXIT(FORMAT(Val,0,9));
+    END;
+
+    PROCEDURE I@1000000013(Val@1000000000 : Integer) : Text[30];
+    BEGIN
+      EXIT(FORMAT(Val,0,9));
+    END;
+
+    PROCEDURE Tranche@1000000014(J@1000000000 : Integer) : Text[10];
+    BEGIN
+      IF J <= 0 THEN EXIT('NON ECHU');
+      IF J <= 30 THEN EXIT('1-30');
+      IF J <= 60 THEN EXIT('31-60');
+      IF J <= 90 THEN EXIT('61-90');
+      IF J <= 180 THEN EXIT('91-180');
+      IF J <= 365 THEN EXIT('181-365');
+      EXIT('+365');
+    END;
+
+    PROCEDURE Retard@1000000015(Ech@1000000000 : Date;Ref@1000000001 : Date) : Integer;
+    BEGIN
+      IF (Ech = 0D) OR (Ech >= Ref) THEN
+        EXIT(0);
+      EXIT(Ref - Ech);
+    END;
+
+    PROCEDURE FamArt@1000000017(No@1000000000 : Code[20]);
+    BEGIN
+      GF := '';
+      FB := '';
+      SFB := '';
+      IF No <> '' THEN
+        IF ItemF.GET(No) THEN BEGIN
+          GF := ItemF."Grande Famille Budg‚taire";
+          FB := ItemF."Famille Budg‚taire";
+          SFB := ItemF."Sous Famille Budg‚taire";
+        END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
