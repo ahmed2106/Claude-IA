@@ -712,9 +712,9 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
   OBJECT-PROPERTIES
   {
     Date=22/10/26;
-    Time=09:00:00;
+    Time=16:00:00;
     Modified=Yes;
-    Version List=RAPPORT;
+    Version List=RAPPORT,V311;
   }
   PROPERTIES
   {
@@ -726,18 +726,21 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
   }
   ELEMENTS
   {
-    { [{4B0083E1-A8E0-4592-930E-80CD94D72A8F}];  ;Root                ;Element ;Text     }
+    { [{D896C78B-AAF3-4718-8F59-5B80A8AA3353}];  ;Root                ;Element ;Text     }
 
-    { [{08F1C0A2-3D02-4985-82E8-F79C095E88E0}];1 ;ENTETE              ;Element ;Table   ;
+    { [{888F7DCA-7E54-4289-BC60-F4987BB0C9A5}];1 ;ENTETE              ;Element ;Table   ;
                                                   SourceTable=Table2000000026;
                                                   SourceTableView=WHERE(Field1=CONST(1));
                                                   Export::OnPreXMLItem=BEGIN
                                                                          IF DateFin = 0D THEN
                                                                            ERROR('Renseignez la date d arrete.');
+                                                                         // V2 : une date d arrete future gonfle les retards et inclut les ecritures post-datees
+                                                                         IF DateFin > TODAY THEN
+                                                                           DateFin := TODAY;
                                                                        END;
                                                                         }
 
-    { [{8DDC4DA7-A4F8-45B2-A975-95760F95D8E5}];2 ;LigneEntete         ;Element ;Text    ;
+    { [{34824DB3-F42A-444F-8403-2EE880E7D8E7}];2 ;LigneEntete         ;Element ;Text    ;
                                                   VariableName=LigneEntete;
                                                   Export::OnBeforePassVariable=BEGIN
                                                                                  LigneEntete :=
@@ -746,7 +749,7 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                END;
                                                                                 }
 
-    { [{87072B4B-0FF9-4D0B-913C-A6E36A4FB661}];1 ;FOURNISSEURS        ;Element ;Table   ;
+    { [{8CE4017D-70B8-444F-84DB-07FD045E665F}];1 ;FOURNISSEURS        ;Element ;Table   ;
                                                   SourceTable=Table23;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          Vendor.SETRANGE("Date Filter",0D,DateFin);
@@ -759,19 +762,20 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                            END;
                                                                             }
 
-    { [{30F28980-E692-410B-9CEA-6814DBAE07CB}];2 ;LigneFournisseur    ;Element ;Text    ;
+    { [{1072A557-C878-4537-B0F4-022E3515397B}];2 ;LigneFournisseur    ;Element ;Text    ;
                                                   VariableName=LigneFournisseur;
                                                   Export::OnBeforePassVariable=BEGIN
-                                                                                 // montants inverses : positif = dette de COMAF
+                                                                                 // V2 : Net Change fournisseur deja positif quand COMAF doit -> plus d inversion de signe
+                                                                                 // GroupeFournisseur permet de separer fournisseurs (LOC-EXP, ETR-EXP) / banques (BQ-*) / leasing (LEAS-*)
                                                                                  LigneFournisseur :=
                                                                                    'F;' + FDate(DateFin) + ';' + T(Vendor."No.") + ';' + T(Vendor.Name) + ';' +
                                                                                    T(Vendor."Purchaser Code") + ';' + T(Vendor."Vendor Posting Group") + ';;;;;;;;;' +
                                                                                    T(Vendor."Payment Terms Code") + ';' + FORMAT(Vendor.Blocked,0,2) + ';' +
-                                                                                   T(Vendor."Payment Method Code") + ';' + N(-Vendor."Net Change (LCY)") + ';';
+                                                                                   T(Vendor."Payment Method Code") + ';' + N(Vendor."Net Change (LCY)") + ';';
                                                                                END;
                                                                                 }
 
-    { [{1B851DAD-835F-47AD-8BA5-BB5CE010E7CB}];1 ;ECRITURES           ;Element ;Table   ;
+    { [{2A7CAF11-951B-4512-8EC3-0167D934BC07}];1 ;ECRITURES           ;Element ;Table   ;
                                                   SourceTable=Table25;
                                                   Export::OnPreXMLItem=BEGIN
                                                                          "Vendor Ledger Entry".SETRANGE("Posting Date",0D,DateFin);
@@ -792,9 +796,10 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                            END;
                                                                             }
 
-    { [{064D0056-E532-4341-8D54-7DF1290F3BCF}];2 ;LigneEcriture       ;Element ;Text    ;
+    { [{F8FD0385-F2D4-4294-BA9B-C6A045C736D7}];2 ;LigneEcriture       ;Element ;Text    ;
                                                   VariableName=LigneEcriture;
                                                   Export::OnBeforePassVariable=BEGIN
+                                                                                 // ecritures : signe inverse (positif = dette de COMAF)
                                                                                  LigneEcriture :=
                                                                                    'E;' + FDate(DateFin) + ';' + T("Vendor Ledger Entry"."Vendor No.") + ';' + T(NomFournisseur) + ';' +
                                                                                    T("Vendor Ledger Entry"."Purchaser Code") + ';' + T("Vendor Ledger Entry"."Vendor Posting Group") + ';' +
@@ -806,11 +811,12 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
                                                                                END;
                                                                                 }
 
-    { [{A939972C-68A5-4324-9D6F-3C093EB3A84E}];1 ;DECAISSEMENTS       ;Element ;Table   ;
+    { [{09BF9ED4-0AAC-462B-9AA7-ECB8157F6A1C}];1 ;DECAISSEMENTS       ;Element ;Table   ;
                                                   VariableName=Paiement;
                                                   SourceTable=Table25;
                                                   Export::OnPreXMLItem=BEGIN
-                                                                         Paiement.SETRANGE("Document Type",Paiement."Document Type"::Payment);
+                                                                         // V2 : tous les mouvements debiteurs hors factures et avoirs (reglements, traites, virements)
+                                                                         Paiement.SETFILTER("Document Type",'<>%1&<>%2',Paiement."Document Type"::Invoice,Paiement."Document Type"::"Credit Memo");
                                                                          IF DateDebut = 0D THEN
                                                                            Paiement.SETRANGE("Entry No.",0)
                                                                          ELSE
@@ -819,11 +825,13 @@ OBJECT XMLport 50061 Export Dettes Fournisseurs
 
                                                   Export::OnAfterGetRecord=BEGIN
                                                                              Paiement.CALCFIELDS("Amount (LCY)");
+                                                                             IF (Paiement."Amount (LCY)" <= 0) OR (ABS(Paiement."Amount (LCY)") < 1) THEN
+                                                                               currXMLport.SKIP;
                                                                              NomFrs(Paiement."Vendor No.");
                                                                            END;
                                                                             }
 
-    { [{BC9F2C73-DC6C-4700-9F4A-4B1544B3FD55}];2 ;LignePaiement       ;Element ;Text    ;
+    { [{193F5283-070D-4AB7-99CC-8B7F61A3B26D}];2 ;LignePaiement       ;Element ;Text    ;
                                                   VariableName=LignePaiement;
                                                   Export::OnBeforePassVariable=BEGIN
                                                                                  LignePaiement :=
@@ -1545,4 +1553,3 @@ OBJECT XMLport 50064 Export Achats
     END.
   }
 }
-
